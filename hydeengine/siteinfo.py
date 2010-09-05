@@ -67,7 +67,7 @@ class Page(SiteResource):
 
         self.listing = a_file.name_without_extension in listing_pages
         self.exclude = False
-        self.display_in_list = True
+        self.display_in_list = None
         self.module = node.module
         self.process()
         if type(self.created) == date:
@@ -124,10 +124,11 @@ class Page(SiteResource):
 
             self.listing = True
 
-        self.display_in_list = (not self.listing and
-                                not self.exclude and
-                                not self.file.name.startswith("_") and
-                                self.file.kind == "html")
+        if self.display_in_list is None:
+            self.display_in_list = (not self.listing and
+                                    not self.exclude and
+                                    not self.file.name.startswith("_") and
+                                    self.file.kind == "html")
 
     def _make_clean_url(self, page_url):
         if self.node.listing_page == self:
