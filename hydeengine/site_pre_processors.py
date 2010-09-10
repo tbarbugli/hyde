@@ -107,14 +107,24 @@ class CategoriesManager:
             else:
                 raise ValueError("No template reference in CategoriesManager's settings")
 
-            for category in categories:
-                archive_resource = "%s.html" % urllib.quote_plus(category["name"])
-                category["archive_url"] = "/%s/%s" % (relative_folder,
-                                                         archive_resource)
+            clean_urls = False
+            if hasattr(settings, "GENERATE_CLEAN_URLS"):
+                clean_urls = settings.GENERATE_CLEAN_URLS
 
             for category in categories:
-                name = urllib.quote_plus(category["name"])
-                archive_resource = "%s.html" % (name)
+                cat_url = urllib.quote_plus(category["name"])
+                if clean_urls:
+                    cat_folder = os.path.join(output_folder, cat_url)
+                    if not os.path.isdir(cat_folder):
+                        os.makedirs(cat_folder)
+                    archive_resource = "%s/index.html" % cat_url
+                    category["archive_url"] = "/%s/%s" % (relative_folder,
+                                                            cat_url)
+                else:
+                    archive_resource = "%s.html" % cat_url
+                    category["archive_url"] = "/%s/%s" % (relative_folder,
+                                                            archive_resource)
+
                 #: stubbing page object for use in template
                 page = {
                     'module': node.module,
@@ -130,6 +140,7 @@ class CategoriesManager:
                                      archive_resource), \
                                      "w", "utf-8") as file:
                     file.write(output)
+
 
 class NodeInjector(object):
     """Node Injector
