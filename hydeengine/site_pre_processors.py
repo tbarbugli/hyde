@@ -58,6 +58,8 @@ class CategoriesManager:
                   the archive page
                   may contain the `output_folder` key to specify the destination
                   folder of the generated listing pages (by default: 'archives')
+                  may contain the `listing_template` key. this template will be used
+                  to render the index page of the archive
     """
     @staticmethod
     def process(folder, params):
@@ -135,6 +137,18 @@ class CategoriesManager:
                                 'posts': category["posts"],
                                 'categories': categories,
                                 'page': page})
+                output = render_to_string(template, context)
+                with codecs.open(os.path.join(output_folder, \
+                                     archive_resource), \
+                                     "w", "utf-8") as file:
+                    file.write(output)
+
+            # listing page for categories
+            if 'listing_template' in params:
+                template = os.path.join(settings.LAYOUT_DIR, params['listing_template'])
+                archive_resource = "%s/index.html" % output_folder
+
+                context.update({'categories': categories})
                 output = render_to_string(template, context)
                 with codecs.open(os.path.join(output_folder, \
                                      archive_resource), \
