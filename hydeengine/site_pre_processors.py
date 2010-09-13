@@ -177,9 +177,6 @@ class ResourcePairer(object):
 
 class RecursiveAttributes(object):
     """Adds recursivity base on attributes with dots"""
-    def __init__(self):
-        self._setup = False
-
     def __setattr__(self, key, value):
         parts = key.split('.', 1)
         if len(parts) == 1:
@@ -232,15 +229,22 @@ class ImageMetadata(object):
         import PIL.IptcImagePlugin
 
         class AttributeMapper(RecursiveAttributes):
-            def __init__(self, values, mappings):
+            def __init__(self, values, mapping, internal_mapping={}):
                 if values is None:
                     return
 
-                for mapping in mappings:
-                    for tag, name in mapping.iteritems():
-                        value = values.get(tag)
-                        if value is not None:
-                            setattr(self, name, value)
+                for tag, name in mapping.iteritems():
+                    value = values.get(tag)
+                    if value is None:
+                        continue
+
+                    if name in internal_mapping:
+                        for extra_tag, extra_name in internal_mapping[name].iteritems():
+                            extra_value = value.get(extra_tag)
+                            if extra_value is not None:
+                                setattr(self, '.'.join((name, extra_name)), extra_value)
+                    else:
+                        setattr(self, name, value)
 
         # setup the mapping
         mapping = ImageMetadata.DEFAULT_MAPPING.copy()
@@ -258,12 +262,12 @@ class ImageMetadata(object):
                 # not all images have exif information
                 try:
                     resource.meta = RecursiveAttributes()
-                    resource.meta.exif = AttributeMapper(image._getexif(), [PIL.ExifTags.TAGS, PIL.ExifTags.GPSTAGS])
+                    resource.meta.exif = AttributeMapper(image._getexif(), PIL.ExifTags.TAGS, {'GPSInfo': PIL.ExifTags.GPSTAGS})
                 except AttributeError:
                     pass
 
                 iptc = PIL.IptcImagePlugin.getiptcinfo(image)
-                resource.meta.iptc = AttributeMapper(iptc, [ImageMetadata.IIM_MAPPING])
+                resource.meta.iptc = AttributeMapper(iptc, ImageMetadata.IIM_MAPPING)
 
                 # use the mapping to add easier access to some attributes
                 for key, attr in mapping.items():
@@ -286,7 +290,6 @@ class ImageMetadataPyExiv2(object):
                 super(AttributeMapper, self).__init__()
                 for key in keys:
                     setattr(self, key, image[key])
-                self._setup = True
 
         # setup default mapping + local overrides
         mapping = ImageMetadataPyExiv2.DEFAULT_MAPPING.copy()
