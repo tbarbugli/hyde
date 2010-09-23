@@ -84,7 +84,8 @@ class CategoriesManager:
             sub_node.categories = l
 
         #archiving section
-        archiving = 'archiving' in params.keys() and params['archiving'] is False or True
+        if 'archiving' in params.keys():
+            archiving = params['archiving'] is True
 
         if archiving:
             categories = l
