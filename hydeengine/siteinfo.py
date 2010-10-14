@@ -498,14 +498,17 @@ class SiteInfo(SiteNode):
         self.resourcemap[resource.file.path] = resource
 
     def resource_removed(self, resource):
-        del self.resourcemap[resource.file.path]
+        if resource.file.path in self.resourcemap:
+            del self.resourcemap[resource.file.path]
 
     def remove_node(self, node):
         for node in node.walk():
-            del self.nodemap[node.folder.path]
+            if node.folder.path in self.nodemap:
+                del self.nodemap[node.folder.path]
         for resource in node.walk_resources():
             self.resource_removed(resource)
-        node.parent.children.remove(node)
+        if node.parent and node in node.parent.children:
+            node.parent.children.remove(node)
 
     def monitor(self, queue=None, waittime=1):
         if self.m and self.m.isAlive():
