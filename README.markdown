@@ -386,3 +386,6 @@ The following websites are built using hyde and are open sourced.
 - [James Wilcox](http://github.com/snorp)
 - [Hugo Vincent](http://github.com/hugovincent)
 - [Örjan Persson](http://github.com/op)
+- [Ken](http://github.com/xythian)
+- [Nico Mandery](http://github.com/nmandery)
+- [Chetan Surpur](http://github.com/chetan51)
