@@ -58,6 +58,8 @@ class CategoriesManager:
                   the archive page
                   may contain the `output_folder` key to specify the destination
                   folder of the generated listing pages (by default: 'archives')
+                  may contain the `listing_template` key. this template will be used
+                  to render the index page of the archive
     """
     @staticmethod
     def process(folder, params):
@@ -84,7 +86,9 @@ class CategoriesManager:
             sub_node.categories = l
 
         #archiving section
-        archiving = 'archiving' in params.keys() and params['archiving'] is False or True
+        archiving = False
+        if 'archiving' in params.keys():
+            archiving = params['archiving'] is True
 
         if archiving:
             categories = l
@@ -107,14 +111,24 @@ class CategoriesManager:
             else:
                 raise ValueError("No template reference in CategoriesManager's settings")
 
-            for category in categories:
-                archive_resource = "%s.html" % urllib.quote_plus(category["name"])
-                category["archive_url"] = "/%s/%s" % (relative_folder,
-                                                         archive_resource)
+            clean_urls = False
+            if hasattr(settings, "GENERATE_CLEAN_URLS"):
+                clean_urls = settings.GENERATE_CLEAN_URLS
 
             for category in categories:
-                name = urllib.quote_plus(category["name"])
-                archive_resource = "%s.html" % (name)
+                cat_url = urllib.quote_plus(category["name"])
+                if clean_urls:
+                    cat_folder = os.path.join(output_folder, cat_url)
+                    if not os.path.isdir(cat_folder):
+                        os.makedirs(cat_folder)
+                    archive_resource = "%s/index.html" % cat_url
+                    category["archive_url"] = "/%s/%s" % (relative_folder,
+                                                            cat_url)
+                else:
+                    archive_resource = "%s.html" % cat_url
+                    category["archive_url"] = "/%s/%s" % (relative_folder,
+                                                            archive_resource)
+
                 #: stubbing page object for use in template
                 page = {
                     'module': node.module,
@@ -130,6 +144,19 @@ class CategoriesManager:
                                      archive_resource), \
                                      "w", "utf-8") as file:
                     file.write(output)
+
+            # listing page for categories
+            if 'listing_template' in params:
+                template = os.path.join(settings.LAYOUT_DIR, params['listing_template'])
+                archive_resource = "%s/index.html" % output_folder
+
+                context.update({'categories': categories})
+                output = render_to_string(template, context)
+                with codecs.open(os.path.join(output_folder, \
+                                     archive_resource), \
+                                     "w", "utf-8") as file:
+                    file.write(output)
+
 
 class NodeInjector(object):
     """Node Injector
@@ -197,9 +224,6 @@ class ResourcePairer(object):
 
 class RecursiveAttributes(object):
     """Adds recursivity base on attributes with dots"""
-    def __init__(self):
-        self._setup = False
-
     def __setattr__(self, key, value):
         parts = key.split('.', 1)
         if len(parts) == 1:
@@ -252,15 +276,22 @@ class ImageMetadata(object):
         import PIL.IptcImagePlugin
 
         class AttributeMapper(RecursiveAttributes):
-            def __init__(self, values, mappings):
+            def __init__(self, values, mapping, internal_mapping={}):
                 if values is None:
                     return
 
-                for mapping in mappings:
-                    for tag, name in mapping.iteritems():
-                        value = values.get(tag)
-                        if value is not None:
-                            setattr(self, name, value)
+                for tag, name in mapping.iteritems():
+                    value = values.get(tag)
+                    if value is None:
+                        continue
+
+                    if name in internal_mapping:
+                        for extra_tag, extra_name in internal_mapping[name].iteritems():
+                            extra_value = value.get(extra_tag)
+                            if extra_value is not None:
+                                setattr(self, '.'.join((name, extra_name)), extra_value)
+                    else:
+                        setattr(self, name, value)
 
         # setup the mapping
         mapping = ImageMetadata.DEFAULT_MAPPING.copy()
@@ -278,12 +309,12 @@ class ImageMetadata(object):
                 # not all images have exif information
                 try:
                     resource.meta = RecursiveAttributes()
-                    resource.meta.exif = AttributeMapper(image._getexif(), [PIL.ExifTags.TAGS, PIL.ExifTags.GPSTAGS])
+                    resource.meta.exif = AttributeMapper(image._getexif(), PIL.ExifTags.TAGS, {'GPSInfo': PIL.ExifTags.GPSTAGS})
                 except AttributeError:
                     pass
 
                 iptc = PIL.IptcImagePlugin.getiptcinfo(image)
-                resource.meta.iptc = AttributeMapper(iptc, [ImageMetadata.IIM_MAPPING])
+                resource.meta.iptc = AttributeMapper(iptc, ImageMetadata.IIM_MAPPING)
 
                 # use the mapping to add easier access to some attributes
                 for key, attr in mapping.items():
@@ -306,7 +337,6 @@ class ImageMetadataPyExiv2(object):
                 super(AttributeMapper, self).__init__()
                 for key in keys:
                     setattr(self, key, image[key])
-                self._setup = True
 
         # setup default mapping + local overrides
         mapping = ImageMetadataPyExiv2.DEFAULT_MAPPING.copy()
