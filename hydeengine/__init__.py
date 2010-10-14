@@ -35,7 +35,7 @@ class _HydeDefaults:
     CONTEXT = {}
     RST_SETTINGS_OVERRIDES = {}
 
-def setup_env(site_path):
+def setup_env(site_path, settings_name="settings"):
     """
     Initializes the Django Environment. NOOP if the environment is
     initialized already.
@@ -45,15 +45,14 @@ def setup_env(site_path):
     if hasattr(settings, "CONTEXT"):
         return
 
-    settings_file = os.path.join(site_path, "settings.py")
+    settings_file = os.path.join(site_path, settings_name + ".py")
     if not os.path.exists(settings_file):
         print "No Site Settings File Found"
         raise ValueError("The given site_path [%s] does not contain a hyde site. "
                          "Give a valid path or run -init to create a new site." % (site_path,))
 
     try:
-        hyde_site_settings = imp.load_source("hyde_site_settings",
-                        os.path.join(site_path,"settings.py"))
+        hyde_site_settings = imp.load_source("hyde_site_settings", settings_file)
     except SyntaxError, err:
         print "The given site_path [%s] contains a settings file " \
               "that could not be loaded due syntax errors." % site_path
@@ -103,7 +102,7 @@ class Server(object):
         self.address = address
         self.port = port
 
-    def serve(self, deploy_path, exit_listner):
+    def serve(self, deploy_path, exit_listner, settings_name="settings"):
         """
         Starts the cherrypy server at the given `deploy_path`.  If exit_listner is
         provided, calls it when the engine exits.
@@ -115,7 +114,7 @@ class Server(object):
             print "Cherry Py is required to run the webserver"
             raise
 
-        setup_env(self.site_path)
+        setup_env(self.site_path, settings_name)
         validate_settings()
         deploy_folder = Folder(
                             (deploy_path, settings.DEPLOY_DIR)
@@ -248,8 +247,8 @@ def GeventServer(*args, **kwargs):
             # FIXME
             mimetypes.init()
 
-        def serve(self, deploy_path, exit_listener):
-            setup_env(self.site_path)
+        def serve(self, deploy_path, exit_listener, settings_name="settings"):
+            setup_env(self.site_path, settings_name)
             validate_settings()
 
             self.root = deploy_path or settings.DEPLOY_DIR
@@ -513,11 +512,12 @@ class Generator(object):
 
     def generate(self, deploy_path=None,
                        keep_watching=False,
-                       exit_listner=None):
+                       exit_listner=None,
+                       settings_name="settings"):
 
         self.exit_listner = exit_listner
         self.quit_event = Event()
-        setup_env(self.site_path)
+        setup_env(self.site_path, settings_name)
         validate_settings()
         self.build_siteinfo(deploy_path)
         self.process_all()
