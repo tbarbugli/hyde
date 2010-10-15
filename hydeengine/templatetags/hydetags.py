@@ -5,7 +5,7 @@ from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords_html, stringfilter
 from django.template.loader_tags import do_include
 from django.template import Library
-from hydeengine.file_system import Folder
+from hydeengine.file_system import File, Folder
 import re
 import string
 import operator
@@ -14,6 +14,7 @@ from datetime import datetime
 
 marker_start = "<!-- Hyde::%s::Begin -->"
 marker_end = "<!-- Hyde::%s::End -->"
+current_referrer = 'current_referrer'
 
 register = Library()
 
@@ -39,6 +40,48 @@ def article(parser, token):
     nodelist = parser.parse(('endarticle',))
     parser.delete_first_token()
     return BracketNode("Article", nodelist)
+    
+@register.tag(name="refer")
+def refer_page(parser, token):
+    bits = token.contents.split()
+    if (len(bits) < 5 or 
+        bits[1] != 'to' or
+        bits[3] != 'as'):
+        raise TemplateSyntaxError, "Syntax: 'refer to _page_path_ as _namespace_'"
+    return ReferNode(bits[2], bits[4])
+    
+@register.tag(name="reference")
+def reference(parser, token):
+    bits = token.contents.split()
+    if len(bits) < 2:
+        raise TemplateSyntaxError, "Syntax: 'reference _variable_'"
+    nodelist = parser.parse(('endreference',))
+    parser.delete_first_token()
+    return ReferenceNode(bits[1], nodelist)
+
+class ReferNode(template.Node):
+    def __init__(self, path, namespace):
+        self.path = path
+        self.namespace = namespace
+
+    def render(self, context):
+        self.path = context['page'].node.folder.child(self.path.strip('"'))
+        context[current_referrer] = {'namespace': self.namespace}
+        render_to_string(str(self.path), context)
+        context[self.namespace] = context[current_referrer]
+        context[current_referrer] = None
+        return ''
+
+class ReferenceNode(template.Node):
+    def __init__(self, variable, nodelist):
+        self.variable = variable
+        self.nodelist = nodelist
+        
+    def render(self, context):
+        rendered_string = self.nodelist.render(context)
+        if current_referrer in context and context[current_referrer]:
+            context[current_referrer][self.variable] = rendered_string
+        return rendered_string
 
 class BracketNode(template.Node):
     def __init__(self, marker, nodelist):
