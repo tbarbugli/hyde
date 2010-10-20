@@ -399,7 +399,10 @@ class Generator(object):
         self.create_siteinfo()
 
     def create_siteinfo(self):
-        self.siteinfo  = SiteInfo(settings, self.site_path)
+        srcroot = self.site_path
+        if hasattr(settings, 'SRC_DIR') and Folder(settings.SRC_DIR).exists:
+            srcroot = settings.SRC_DIR
+        self.siteinfo  = SiteInfo(settings, srcroot)
         self.siteinfo.refresh()
         settings.CONTEXT['site'] = self.siteinfo.content_node
 
