@@ -67,7 +67,10 @@ class ReferNode(template.Node):
     def render(self, context):
         self.path = context['page'].node.folder.child(self.path.strip('"'))
         context[current_referrer] = {'namespace': self.namespace}
+        original_page = context['page']
+        context['page'] = original_page.node.find_resource(File(self.path))
         render_to_string(str(self.path), context)
+        context['page'] = original_page
         context[self.namespace] = context[current_referrer]
         context[current_referrer] = None
         return ''
