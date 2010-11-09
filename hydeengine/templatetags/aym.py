@@ -64,7 +64,10 @@ class MarkdownNode(template.Node):
         self.extensions = extensions
 
     def render(self, context):
-        output = self.nodelist.render(context) 
+        context.push()
+        context['in_markdown'] = True
+        output = self.nodelist.render(context)
+        context.pop()
         extensions = self.extensions
         if hasattr(settings,'MD_EXTENSIONS'):
             extensions = extensions + settings.MD_EXTENSIONS
@@ -163,7 +166,13 @@ class SyntaxHighlightNode(template.Node):
             pygments_options = settings.PYGMENTS_OPTIONS
         formatter = formatters.HtmlFormatter(**pygments_options)
         h = pygments.highlight(output, lexer, formatter)
+        if context.get('in_markdown', False):
+            h = self.preprocess_for_markdown(h)
         return safestring.mark_safe(h)
+    
+    def preprocess_for_markdown(self, code):
+        code = code.replace('\n\n', '\n&nbsp;\n').replace('\n', '<br />')
+        return '\n\n<div class="code">%s</div>\n\n' % code
         
     def get_lexer(self, value):
         if self.lexer is None:
