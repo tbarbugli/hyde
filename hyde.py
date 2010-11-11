@@ -10,7 +10,7 @@ import hydeengine
 PROG_ROOT = os.path.dirname(os.path.realpath( __file__ ))
 
 def main(argv):
-    parser = optparse.OptionParser(usage="%prog [-f] [-q]", version="%prog 0.4")
+    parser = optparse.OptionParser(usage="%prog [-f] [-q]", version="%prog 0.5")
     parser.add_option("-s", "--sitepath",
                         dest = "site_path",
                         help = "Change the path of the site folder.")
