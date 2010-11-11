@@ -153,6 +153,14 @@ class File(FileSystemEntity):
     def __init__(self, path):
         super(File, self).__init__(path)
 
+    @property
+    def size(self):
+        """
+        Gets the file size
+        """
+        return os.path.getsize(self.path)
+        #return 1
+
     def has_extension(self, extension):
         """
         Checks if this file has the given extension.

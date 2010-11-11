@@ -205,6 +205,7 @@ class TestSiteInfo:
         node = resource.node
         fragment = self.get_node_fragment(node)
         assert resource.name == resource.file.name
+        assert resource.file.size == os.path.getsize(resource.file.path)
         if resource.node.type in ("content", "media"):
             assert (resource.url ==
                         url.join(node.url, resource.file.name))
