@@ -35,6 +35,7 @@ def main(argv):
                         dest = "webserve", default = False,
                         help = "Start serving using a webserver.")
     parser.add_option("--web-flavor", metavar='NAME', default="CherryPy", help="Specify the flavor of the server (CherryPy, gevent)")
+    parser.add_option("--settings", default="settings", help="Specify the settings file name to be used")
     parser.add_option("-p", "--port",
                         dest = "port", default=8080,
                         type='int',
@@ -80,11 +81,11 @@ def main(argv):
 
     if options.generate:
         generator = hydeengine.Generator(options.site_path)
-        generator.generate(options.deploy_to, options.keep_watching, quit)
+        generator.generate(options.deploy_to, options.keep_watching, quit, options.settings)
 
     if options.webserve:
         server = Server(options.site_path, address=options.address, port=options.port)
-        server.serve(options.deploy_to, quit)
+        server.serve(options.deploy_to, quit, options.settings)
 
     if ((options.generate and options.keep_watching)
                     or
