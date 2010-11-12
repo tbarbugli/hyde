@@ -710,6 +710,7 @@ class TestPreProcessors:
         for category in blog_node.categories:
             if category['name'] == 'wishes':
                 found = True
+                assert category['description'] == settings.CATEGORIES['wishes']['description']
                 assert len(category['posts']) == 3
 
         if not found:

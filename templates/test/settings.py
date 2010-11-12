@@ -83,6 +83,12 @@ CONTENT_PROCESSORS = {
             }
 }
 
+CATEGORIES = {
+    'wishes': {
+        'description': 'Warm wishes from the bottom of my heart'
+    }
+}
+
 SITE_POST_PROCESSORS = {
     # 'media/js': {
     #        'hydeengine.site_post_processors.FolderFlattener' : {
@@ -96,7 +102,8 @@ SITE_PRE_PROCESSORS = {
     'blog': {
         'hydeengine.site_pre_processors.CategoriesManager' : {
             'template': '_category.html',
-            'listing_template': '_categorylist.html'
+            'listing_template': '_categorylist.html',
+            'meta': CATEGORIES
          }
     },
     '/': {

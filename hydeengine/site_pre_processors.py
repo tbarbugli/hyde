@@ -23,11 +23,15 @@ class Category:
     """
     Plain object
     """
-    def __init__(self, name=""):
+    def __init__(self, name="", meta={}):
         self.posts = []
         self.feed_url = None
         self.archive_url = None
         self.name = name
+        for key, value in meta.iteritems():
+            if not hasattr(Category, key):
+                setattr(Category, key, None)
+            setattr(self, key, value)
 
     @property
     def name(self):
@@ -66,6 +70,7 @@ class CategoriesManager:
         context = settings.CONTEXT
         site = context['site']
         node = params['node']
+        meta = params.get('meta', {})
         categories = {}
         for post in node.walk_pages():
             if hasattr(post, 'categories') and post.categories != None:
@@ -76,10 +81,12 @@ class CategoriesManager:
                     categories[category].posts.sort(key=operator.attrgetter("created"), reverse=True)
         l = []
         for category in categories.values():
-            l.append({"name": category.name,
-                      "posts": category.posts,
-                      "feed_url": category.feed_url,
-                      "post_count": len(category.posts)})
+            d = {"name": category.name,
+                 "posts": category.posts,
+                 "feed_url": category.feed_url,
+                 "post_count": len(category.posts)}
+            d.update(meta.get(category.name, {}))
+            l.append(d)
 
         node.categories = l
         for sub_node in node.walk():
