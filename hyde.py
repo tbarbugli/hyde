@@ -9,8 +9,8 @@ import hydeengine
 
 PROG_ROOT = os.path.dirname(os.path.realpath( __file__ ))
 
-def main(argv):
-    parser = optparse.OptionParser(usage="%prog [-f] [-q]", version="%prog 0.5")
+def main():
+    parser = optparse.OptionParser(usage="%prog [-f] [-q]", version="%prog 0.5.1")
     parser.add_option("-s", "--sitepath",
                         dest = "site_path",
                         help = "Change the path of the site folder.")
@@ -102,12 +102,12 @@ def main(argv):
             print sys.exc_info()
             quit()
 
-    if argv == []:
+    if len(sys.argv) == 1:
         print parser.format_option_help()
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
     # import cProfile
     # cProfile.run('main(sys.argv[1:])', filename='hyde.cprof')
     # import pstats
