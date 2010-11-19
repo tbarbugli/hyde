@@ -5,6 +5,7 @@ from django.template.loader import render_to_string
 from file_system import File
 from datetime import datetime
 from hydeengine.templatetags.hydetags import xmldatetime
+import commands
 
 
 class YUICompressor:
