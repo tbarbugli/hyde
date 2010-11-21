@@ -17,7 +17,7 @@ from Queue import Queue
 from Queue import Empty
 
 from django.conf import settings
-from django.utils.html import strip_spaces_between_tags
+from util import assert_html_equals
 
 TEST_ROOT = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(TEST_ROOT + "/..")
@@ -398,7 +398,7 @@ class TestYAMLProcessor(MonitorTests):
         assert self.exception_queue.empty()
         # Ensure default values are added for all pages
         #
-        temp = File(self.site.content_folder.child("test.html"))
+        temp = File(self.site.content_folder.child("test_var.html"))
         temp.write('text')
         page = Page(temp, self.site.content_node)
         assert not page.title
@@ -490,11 +490,6 @@ class TestProcessing(MonitorTests):
         settings.SITE_ROOT = original_site
         assert self.exception_queue.empty()
 
-    def assert_html_equals(self, expected, actual):
-        expected = strip_spaces_between_tags(expected.strip())
-        actual = strip_spaces_between_tags(actual.strip())
-        assert expected == actual
-
     def assert_valid_html(self, actual_html_resource):
         expected_text = File(
                 TEST_ROOT.child("test_dest.html")).read_all()
@@ -508,7 +503,7 @@ class TestProcessing(MonitorTests):
         source_text = actual_html_resource.file.read_all()
         assert original_source == source_text
         actual_text = actual_html_resource.temp_file.read_all()
-        self.assert_html_equals(expected_text, actual_text)
+        assert_html_equals(expected_text, actual_text)
 
     def assert_valid_markdown(self, actual_html_resource):
         expected_text = File(
@@ -522,7 +517,7 @@ class TestProcessing(MonitorTests):
         source_text = actual_html_resource.file.read_all()
         assert original_source == source_text
         actual_text = actual_html_resource.temp_file.read_all()
-        self.assert_html_equals(expected_text, actual_text)
+        assert_html_equals(expected_text, actual_text)
 
     def assert_valid_textile(self, actual_html_resource):
         expected_text = File(
@@ -537,7 +532,7 @@ class TestProcessing(MonitorTests):
         source_text = actual_html_resource.file.read_all()
         assert original_source == source_text
         actual_text = actual_html_resource.temp_file.read_all()
-        self.assert_html_equals(expected_text, actual_text)
+        assert_html_equals(expected_text, actual_text)
 
     def assert_valid_restructuredtext(self, actual_html_resource):
         expected_text = File(
@@ -551,7 +546,7 @@ class TestProcessing(MonitorTests):
         source_text = actual_html_resource.file.read_all()
         assert original_source == source_text
         actual_text = actual_html_resource.temp_file.read_all()
-        self.assert_html_equals(expected_text, actual_text)
+        assert_html_equals(expected_text, actual_text)
 
     def test_process_page_rendering(self):
         self.generator = Generator(TEST_SITE.path)
@@ -562,7 +557,7 @@ class TestProcessing(MonitorTests):
         t = Thread(target=self.checker,
                         kwargs={"asserter":self.assert_valid_html})
         t.start()
-        source.copy_to(self.site.content_folder.child("test.html"))
+        source.copy_to(self.site.content_folder.child("test_render.html"))
         t.join()
         assert self.exception_queue.empty()
 
@@ -602,7 +597,7 @@ class TestProcessing(MonitorTests):
             t = Thread(target=self.checker,
                             kwargs={"asserter":self.assert_valid_markdown})
             t.start()
-            target = File(self.site.content_folder.child("test.html"))
+            target = File(self.site.content_folder.child("test_md.html"))
             source.copy_to(target)
             t.join()
             target.delete()
@@ -624,7 +619,7 @@ class TestProcessing(MonitorTests):
             t = Thread(target=self.checker,
                             kwargs={"asserter":self.assert_valid_textile})
             t.start()
-            target = File(self.site.content_folder.child("test.html"))
+            target = File(self.site.content_folder.child("test_textile.html"))
             source.copy_to(target)
             t.join()
             target.delete()
@@ -647,7 +642,7 @@ class TestProcessing(MonitorTests):
             t = Thread(target=self.checker,
                             kwargs={"asserter":self.assert_valid_restructuredtext})
             t.start()
-            target = File(self.site.content_folder.child("test.html"))
+            target = File(self.site.content_folder.child("test_rest.html"))
             source.copy_to(target)
             t.join()
             target.delete()
@@ -675,11 +670,12 @@ class TestProcessing(MonitorTests):
         self.generator.build_siteinfo()
         source = File(TEST_ROOT.child("test_src.html"))
         self.site.refresh()
+        self.site.dont_monitor()
         self.site.monitor(self.queue)
         t = Thread(target=self.checker,
                         kwargs={"asserter":self.assert_prerendered})
         t.start()
-        target = File(self.site.content_folder.child("prerendered/test.html"))
+        target = File(self.site.content_folder.child("prerendered/test2.html"))
         source.copy_to(target)
         t.join()
         target.delete()

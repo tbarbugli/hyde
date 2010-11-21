@@ -40,16 +40,16 @@ def article(parser, token):
     nodelist = parser.parse(('endarticle',))
     parser.delete_first_token()
     return BracketNode("Article", nodelist)
-    
+
 @register.tag(name="refer")
 def refer_page(parser, token):
     bits = token.contents.split()
-    if (len(bits) < 5 or 
+    if (len(bits) < 5 or
         bits[1] != 'to' or
         bits[3] != 'as'):
         raise TemplateSyntaxError, "Syntax: 'refer to _page_path_ as _namespace_'"
     return ReferNode(bits[2], bits[4])
-    
+
 @register.tag(name="reference")
 def reference(parser, token):
     bits = token.contents.split()
@@ -79,7 +79,7 @@ class ReferenceNode(template.Node):
     def __init__(self, variable, nodelist):
         self.variable = variable
         self.nodelist = nodelist
-        
+
     def render(self, context):
         rendered_string = self.nodelist.render(context)
         if current_referrer in context and context[current_referrer]:
@@ -378,3 +378,39 @@ def recent_resources(parser, token):
         args.pop(-1)
 
     return RecentResourcesNode(*args, **kwargs)
+
+class RepeatNode(template.Node):
+    def __init__(self, template_path, node_list=None, data=None):
+        self.template_path = template_path
+        self.node_list = node_list
+        self.data = data
+
+    def render(self, context):
+        if self.node_list:
+            text = self.node_list.render(context)
+            import yaml
+            self.data = yaml.load(text)
+        else:
+            self.data = self.data.resolve(context)
+        context.push()
+        context['data'] = self.data
+        out = render_to_string(self.template_path, context)
+        context.pop()
+        return out
+
+@register.tag(name='repeat')
+def repeat(parser, token):
+    bits = token.contents.split()
+    if len(bits) < 2:
+        raise TemplateSyntaxError, "Syntax: {%repeat _template_%}YAML{%endrepeat%}'"
+    if ((len(bits) > 2 and len(bits) < 4) or (len(bits) == 4 and bits[2] != "with")):
+        raise TemplateSyntaxError, "Syntax: {%repeat _template_ with var_data%}'"
+    template_path = bits[1]
+    nodelist = None
+    data = None
+    if (len(bits) == 2):
+        nodelist = parser.parse(('endrepeat',))
+        parser.delete_first_token()
+    else:
+        data = template.Variable(bits[3])
+    return RepeatNode(template_path, node_list=nodelist, data=data)

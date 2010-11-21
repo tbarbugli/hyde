@@ -14,7 +14,7 @@ from datetime import time, datetime, timedelta
 import unittest
 
 from django.conf import settings
-from django.utils.html import strip_spaces_between_tags
+from util import assert_html_equals
 
 TEST_ROOT = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(TEST_ROOT + "/..")
@@ -28,7 +28,10 @@ from hydeengine.site_post_processors import FolderFlattener
 
 TEST_ROOT = Folder(TEST_ROOT)
 TEST_SITE = TEST_ROOT.child_folder("test_site")
-ORIGINAL_PRE_PROCESSORS = settings.SITE_PRE_PROCESSORS
+
+ORIGINAL_PRE_PROCESSORS = None
+if settings.configured:
+    ORIGINAL_PRE_PROCESSORS = settings.SITE_PRE_PROCESSORS
 
 
 def setup_module(module):
@@ -66,5 +69,48 @@ class TestHydeTags:
         if ORIGINAL_PRE_PROCESSORS:
             settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
         assert expected_text == actual_text
+
+    def test_repeat_inline_data(self):
+        repeat_folder = TEST_SITE.child_folder('content/repeat');
+        repeat_folder.make()
+        template_folder = TEST_SITE.child_folder('layout');
+        template_folder.make()
+        File(TEST_ROOT.child("repeat_tag/template.html")
+            ).copy_to(template_folder.child('repeat.html'))
+        source = File(TEST_ROOT.child("repeat_tag/source_inline.html")).copy_to(repeat_folder)
+        site = SiteInfo(settings, TEST_SITE.path)
+        site.refresh()
+        self.generator = Generator(TEST_SITE.path)
+        self.generator.build_siteinfo()
+        self.generator.pre_process(site)
+        actual_resource = site.find_resource(source)
+        self.generator.process(actual_resource)
+        expected_text = File(TEST_ROOT.child("repeat_tag/dest.html")).read_all()
+        actual_text = actual_resource.temp_file.read_all()
+        if ORIGINAL_PRE_PROCESSORS:
+            settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
+        assert_html_equals(expected_text, actual_text)
+
+
+    def test_repeat_direct(self):
+        repeat_folder = TEST_SITE.child_folder('content/repeat');
+        repeat_folder.make()
+        template_folder = TEST_SITE.child_folder('layout');
+        template_folder.make()
+        File(TEST_ROOT.child("repeat_tag/template.html")
+            ).copy_to(template_folder.child('repeat.html'))
+        source = File(TEST_ROOT.child("repeat_tag/source.html")).copy_to(repeat_folder)
+        site = SiteInfo(settings, TEST_SITE.path)
+        site.refresh()
+        self.generator = Generator(TEST_SITE.path)
+        self.generator.build_siteinfo()
+        self.generator.pre_process(site)
+        actual_resource = site.find_resource(source)
+        self.generator.process(actual_resource)
+        expected_text = File(TEST_ROOT.child("repeat_tag/dest.html")).read_all()
+        actual_text = actual_resource.temp_file.read_all()
+        if ORIGINAL_PRE_PROCESSORS:
+            settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
+        assert_html_equals(expected_text, actual_text)
 
 
