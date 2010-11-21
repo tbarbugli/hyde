@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 
 setup(name='hyde',
-      version='0.5.1',
+      version='0.5.2',
       description='Hyde is a static website generator originally inspired by Jekyll',
       author='Lakshmi Vyas',
       author_email='lakshmi.vyas@gmail.com',

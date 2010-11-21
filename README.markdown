@@ -1,6 +1,6 @@
 # HYDE
 
-0.5.1
+0.5.2
 
 This document should give enough information to get you up and running. Check
 the [wiki](http://wiki.github.com/lakshmivyas/hyde) for detailed documentation.
