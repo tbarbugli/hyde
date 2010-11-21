@@ -379,7 +379,7 @@ def recent_resources(parser, token):
 
     return RecentResourcesNode(*args, **kwargs)
 
-class RepeatNode(template.Node):
+class RenderNode(template.Node):
     def __init__(self, template_path, node_list=None, data=None):
         self.template_path = template_path
         self.node_list = node_list
@@ -398,19 +398,19 @@ class RepeatNode(template.Node):
         context.pop()
         return out
 
-@register.tag(name='repeat')
-def repeat(parser, token):
+@register.tag(name='render')
+def render(parser, token):
     bits = token.contents.split()
     if len(bits) < 2:
-        raise TemplateSyntaxError, "Syntax: {%repeat _template_%}YAML{%endrepeat%}'"
+        raise TemplateSyntaxError, "Syntax: {%render _template_%}YAML{%endrender%}'"
     if ((len(bits) > 2 and len(bits) < 4) or (len(bits) == 4 and bits[2] != "with")):
-        raise TemplateSyntaxError, "Syntax: {%repeat _template_ with var_data%}'"
+        raise TemplateSyntaxError, "Syntax: {%render _template_ with var_data%}'"
     template_path = bits[1]
     nodelist = None
     data = None
     if (len(bits) == 2):
-        nodelist = parser.parse(('endrepeat',))
+        nodelist = parser.parse(('endrender',))
         parser.delete_first_token()
     else:
         data = template.Variable(bits[3])
-    return RepeatNode(template_path, node_list=nodelist, data=data)
+    return RenderNode(template_path, node_list=nodelist, data=data)

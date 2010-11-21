@@ -70,14 +70,14 @@ class TestHydeTags:
             settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
         assert expected_text == actual_text
 
-    def test_repeat_inline_data(self):
-        repeat_folder = TEST_SITE.child_folder('content/repeat');
-        repeat_folder.make()
+    def test_render_inline_data(self):
+        render_folder = TEST_SITE.child_folder('content/render');
+        render_folder.make()
         template_folder = TEST_SITE.child_folder('layout');
         template_folder.make()
-        File(TEST_ROOT.child("repeat_tag/template.html")
-            ).copy_to(template_folder.child('repeat.html'))
-        source = File(TEST_ROOT.child("repeat_tag/source_inline.html")).copy_to(repeat_folder)
+        File(TEST_ROOT.child("render_tag/template.html")
+            ).copy_to(template_folder.child('render.html'))
+        source = File(TEST_ROOT.child("render_tag/source_inline.html")).copy_to(render_folder)
         site = SiteInfo(settings, TEST_SITE.path)
         site.refresh()
         self.generator = Generator(TEST_SITE.path)
@@ -85,21 +85,21 @@ class TestHydeTags:
         self.generator.pre_process(site)
         actual_resource = site.find_resource(source)
         self.generator.process(actual_resource)
-        expected_text = File(TEST_ROOT.child("repeat_tag/dest.html")).read_all()
+        expected_text = File(TEST_ROOT.child("render_tag/dest.html")).read_all()
         actual_text = actual_resource.temp_file.read_all()
         if ORIGINAL_PRE_PROCESSORS:
             settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
         assert_html_equals(expected_text, actual_text)
 
 
-    def test_repeat_direct(self):
-        repeat_folder = TEST_SITE.child_folder('content/repeat');
-        repeat_folder.make()
+    def test_render_direct(self):
+        render_folder = TEST_SITE.child_folder('content/render');
+        render_folder.make()
         template_folder = TEST_SITE.child_folder('layout');
         template_folder.make()
-        File(TEST_ROOT.child("repeat_tag/template.html")
-            ).copy_to(template_folder.child('repeat.html'))
-        source = File(TEST_ROOT.child("repeat_tag/source.html")).copy_to(repeat_folder)
+        File(TEST_ROOT.child("render_tag/template.html")
+            ).copy_to(template_folder.child('render.html'))
+        source = File(TEST_ROOT.child("render_tag/source.html")).copy_to(render_folder)
         site = SiteInfo(settings, TEST_SITE.path)
         site.refresh()
         self.generator = Generator(TEST_SITE.path)
@@ -107,7 +107,7 @@ class TestHydeTags:
         self.generator.pre_process(site)
         actual_resource = site.find_resource(source)
         self.generator.process(actual_resource)
-        expected_text = File(TEST_ROOT.child("repeat_tag/dest.html")).read_all()
+        expected_text = File(TEST_ROOT.child("render_tag/dest.html")).read_all()
         actual_text = actual_resource.temp_file.read_all()
         if ORIGINAL_PRE_PROCESSORS:
             settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
