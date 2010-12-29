@@ -1,3 +1,10 @@
+from datetime import datetime
+from datetime import timedelta
+import operator
+import os
+import re
+import string
+
 from django import template
 from django.conf import settings
 from django.template import Template
@@ -6,13 +13,7 @@ from django.template.defaultfilters import truncatewords_html
 from django.template.loader_tags import do_include
 from django.template import Library
 from django.utils.safestring import mark_safe
-from hydeengine.file_system import Folder
-import re
-import string
-import os
-import operator
-from datetime import datetime
-from datetime import timedelta
+
 from hydeengine.file_system import Folder 
 
 
@@ -21,12 +22,14 @@ marker_end = "<!-- Hyde::%s::End -->"
 
 register = Library()
 
+
 class HydeContextNode(template.Node):
     def __init__(self): 
         pass
     
     def render(self, context):
         return ""
+
         
 @register.tag(name="hyde")
 def hyde_context(parser, token):
@@ -43,6 +46,7 @@ def excerpt(parser, token):
     nodelist = parser.parse(('endarticle',))
     parser.delete_first_token()
     return BracketNode("Article", nodelist)
+
 
 class BracketNode(template.Node):
     def __init__(self, marker, nodelist):
@@ -85,9 +89,9 @@ class LatestExcerptNode(template.Node):
             return truncatewords_html(rendered[start:end], self.words)
         else:
             return ""                    
+
             
 class RecentPostsNode(template.Node):
-
     def __init__(self, var='recent_posts', count=5, node=None, categories=None):
         self.var = var
         self.count = count        
@@ -175,7 +179,8 @@ def render_article(parser, token):
     if len(tokens) > 1:
         path = parser.compile_filter(tokens[1])
     return RenderArticleNode(path)
-    
+
+
 class RenderExcerptNode(template.Node):
     def __init__(self, page, words = 50):
         self.page = page
@@ -201,19 +206,19 @@ class RenderArticleNode(template.Node):
 
             
 def get_bracketed_content(context, page, marker):
-        rendered = None
-        original_page = context['page']
-        context['page'] = page
-        rendered = render_to_string(str(page), context)
-        context['page'] = original_page
-        bracket_start = marker_start % marker
-        bracket_end = marker_end % marker
-        start = rendered.find(bracket_start)
-        if not start == -1:
-            start = start + len(bracket_start)
-            end = rendered.find(bracket_end, start)
-            return rendered[start:end]
-        return ""
+    rendered = None
+    original_page = context['page']
+    context['page'] = page
+    rendered = render_to_string(str(page), context)
+    context['page'] = original_page
+    bracket_start = marker_start % marker
+    bracket_end = marker_end % marker
+    start = rendered.find(bracket_start)
+    if not start == -1:
+	start = start + len(bracket_start)
+	end = rendered.find(bracket_end, start)
+	return rendered[start:end]
+    return ""
 
 
 @register.filter
