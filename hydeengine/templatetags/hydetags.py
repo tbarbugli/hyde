@@ -430,7 +430,7 @@ class RenderNode(template.Node):
 def render(parser, token):
     bits = token.contents.split()
     if len(bits) < 2:
-        raise TemplateSyntaxError("Syntax: {% render _template_ %}YAML{% endrender %}'"_
+        raise TemplateSyntaxError("Syntax: {% render _template_ %}YAML{% endrender %}'")
     if ((len(bits) > 2 and len(bits) < 4) or (len(bits) == 4 and bits[2] != "with")):
         raise TemplateSyntaxError("Syntax: {% render _template_ with var_data %}'")
     template_path = bits[1]
