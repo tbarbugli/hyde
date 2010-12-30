@@ -1,13 +1,41 @@
 from __future__ import with_statement
-import os
-import string
+import os, re,  string, subprocess, codecs
 from django.conf import settings
 from django.template.loader import render_to_string
 from file_system import File
 from datetime import datetime
 from hydeengine.templatetags.hydetags import xmldatetime
 import commands
-import codecs
+
+
+class YUICompressor:
+
+    @staticmethod
+    def process(folder, params):
+		class Compressor:
+			def visit_file(self, thefile):
+				if settings.YUI_COMPRESSOR == None:
+					return
+				compress = settings.YUI_COMPRESSOR
+				if not os.path.exists(compress):
+					compress = os.path.join(
+							os.path.dirname(
+							os.path.abspath(__file__)), "..", compress)
+
+				if not compress or not os.path.exists(compress):
+					raise ValueError(
+					"YUI Compressor cannot be found at [%s]" % compress)
+
+				tmp_file = File(thefile.path + ".z-tmp")
+				status, output = commands.getstatusoutput(
+				u"java -jar %s %s > %s" % (compress, thefile.path, tmp_file.path))
+				if status > 0:
+					print output
+				else:
+					thefile.delete()
+					tmp_file.move_to(thefile.path)
+
+		folder.walk(Compressor(), "*.css")
 
 class FolderFlattener:
     
@@ -106,14 +134,14 @@ class RssGenerator:
             categories = node.categories
         if categories != None:
             #feed generation for each category
-            for category in categories.keys():
+            for category in categories:
                 #create a ContentNode adapter for categories to walk through the collection (walk_pages function)
                 #the same way than through the site's ContentNode
-                category_adapter = ContentNodeAdapter(categories[category])
+                category_adapter = ContentNodeAdapter(category)
                 feed = generator.generate(category_adapter)
-                feed_filename = "%s.xml" % (category.lower().replace(' ','_'))
+                feed_filename = "%s.xml" % (category["name"].lower().replace(' ','_'))
                 feed_url = "%s/%s/%s/%s" % (settings.SITE_WWW_URL, site.url, output_folder, feed_filename)
-                node.categories[category].feed_url = feed_url
+                category["feed_url"] = feed_url
                 RssGenerator._write_feed(feed, output_folder, feed_filename)
         feed = generator.generate(node)
         node.feed_url = "%s/%s/%s/%s" % (settings.SITE_WWW_URL, site.url, output_folder, "feed.xml")
@@ -137,7 +165,7 @@ class ContentNodeAdapter:
         self.category = category
 
     def walk_pages(self):
-        for post in self.category.posts:
+        for post in self.category["posts"]:
             yield post
 
 class FeedGenerator:
@@ -171,8 +199,6 @@ RSS2_FEED = \
       <link>%(url)s/</link>
       <description>%(description)s</description>
       <language>%(language)s</language>
-      <pubDate>%(publication_date)s</pubDate>
-      <lastBuildDate>%(last_build_date)s</lastBuildDate>
       <docs>http://blogs.law.harvard.edu/tech/rss</docs>
       <generator>Hyde</generator>
       <webMaster>%(webmaster)s</webMaster>
@@ -185,7 +211,8 @@ RSS2_ITEMS = \
       <item>
          <title>%(item_title)s</title>
          <link>%(item_link)s</link>
-         <description>%(description)s</description>
+         <guid>%(guid)s</guid>
+         <description><![CDATA[%(description)s]]></description>
          <pubDate>%(publication_date)s</pubDate>
          <author>%(author)s</author>
       </item>"""
@@ -196,6 +223,9 @@ class Rss2FeedGenerator(FeedGenerator):
     """
     def __init__(self):
         FeedGenerator.__init__(self)
+        self.re_content = re.compile(r"<!-- Hyde::Article::Begin -->(.*)<!-- Hyde::Article::End -->", re.DOTALL)
+        self.date_format = hasattr(settings, "POST_DATE_FORMAT") and \
+                            settings.POST_DATE_FORMAT or "%d %b %y %H:%M GMT"
 
     def generate_items(self, node):
         items = ""
@@ -205,9 +235,11 @@ class Rss2FeedGenerator(FeedGenerator):
                 continue
             item_title = post.title
             item_link = post.full_url
-            description = ''
-            publication_date = post.created
-            #TODO let customisation of RSS2_ITEMS
+            guid = post.full_url
+            description = self.re_content.findall(post.temp_file.read_all())
+            description = len(description) > 0 and description[0] or ""
+            description = description.decode("utf-8")
+            publication_date = post.created.strftime(self.date_format)
             cur_item = RSS2_ITEMS % locals()
             items = "%s%s" % (items, cur_item)
         return items
@@ -217,8 +249,6 @@ class Rss2FeedGenerator(FeedGenerator):
         url = settings.SITE_WWW_URL
         description = ''
         language = settings.LANGUAGE_CODE or 'en-us'
-        publication_date = ""
-        last_build_date = ""
         webmaster = settings.SITE_AUTHOR_EMAIL
         return RSS2_FEED % locals()
 

@@ -71,8 +71,11 @@ class Page(SiteResource):
         self.process()
         if type(self.created) == date:
             self.created = datetime.combine(self.created, time())
+
         if type(self.updated) == date:
             self.updated = datetime.combine(self.updated, time())
+        elif type(self.updated) != datetime:
+            self.updated = self.created
 
     @property
     def page_name(self):
@@ -113,17 +116,18 @@ class Page(SiteResource):
         if not context:
             context = {}
         self.add_variables(context)
-        if (self.file.name_without_extension.lower()
-            == self.node.folder.name.lower()
-            or self.file.name_without_extension.lower()
-            in self.node.site.settings.LISTING_PAGE_NAMES):
+        if (self.file.name_without_extension.lower() ==
+                self.node.folder.name.lower()   or
+            self.file.name_without_extension.lower() in
+                self.node.site.settings.LISTING_PAGE_NAMES):
 
             self.listing = True
 
-        self.display_in_list = (not self.listing and 
-                                not self.exclude and 
-                                not self.file.name.startswith("_") and
-                                self.file.kind == "html")
+        if self.display_in_list is None:
+            self.display_in_list = (not self.listing and
+                                    not self.exclude and
+                                    not self.file.name.startswith("_") and
+                                    self.file.kind == "html")
 
     def _make_clean_url(self, page_url):
         if self.node.listing_page == self:
@@ -252,8 +256,10 @@ class SiteNode(object):
 
     def find_node(self, folder):
         try:
+            #print 'FIND NODE', folder, self.site.nodemap.get(folder.path)
             return self.site.nodemap[folder.path]
         except KeyError:
+            #print 'FAILED FIND NODE', folder
             return None
 
     find_child = find_node
@@ -292,12 +298,14 @@ class SiteNode(object):
 
 
 class ContentNode(SiteNode):
+
     def __init__(self, folder, parent=None):
         super(ContentNode, self).__init__(folder, parent)
         self.listing_page = None
         self.feed_url = None
 
     walk_pages = SiteNode.walk_resources
+    walk_pages_reverse = SiteNode.walk_resources_reverse
 
     def walk_child_pages(self, sorting_key='url'):
         """
@@ -334,7 +342,8 @@ class ContentNode(SiteNode):
     @property
     def module(self):
         module = self
-        while (module.parent and not module.parent == self.site.content_node):
+        while (module.parent and
+                not module.parent == self.site.content_node):
             module = module.parent
         return module
 
@@ -359,6 +368,7 @@ class ContentNode(SiteNode):
         ancestors.reverse()
         return ancestors
 
+
     @staticmethod
     def is_content(site, folder):
         return (site.content_folder.same_as(folder) or
@@ -370,6 +380,8 @@ class ContentNode(SiteNode):
             self.listing_page = page
         self.resources.append(page)
         page.node.sort()
+        if not page.module == self.site:
+            page.module.flatten_and_sort()
         return page
 
     def sort(self):
@@ -387,15 +399,30 @@ class ContentNode(SiteNode):
         for node in self.children:
             node.sort()
 
+    def flatten_and_sort(self):
+        flattened_pages = []
+        prev_in_module = None
+        for page in self.walk_pages():
+            flattened_pages.append(page)
+        flattened_pages.sort(key=operator.attrgetter("created"), reverse=True)
+        for page in flattened_pages:
+            page.next_in_module = None
+            if page.display_in_list:
+                if prev_in_module:
+                    prev_in_module.next_in_module = page
+                    page.prev_in_module = prev_in_module
+                page.next_in_module = None
+                prev_in_module = page
+
     @property
     def target_folder(self):
         deploy_folder = self.site.target_folder
-        return deploy_folder.child_folder_with_fragment(self.url)
+        return deploy_folder.child_folder_with_fragment(self.fragment)
 
     @property
     def temp_folder(self):
         temp_folder = self.site.temp_folder
-        return temp_folder.child_folder_with_fragment(self.url)
+        return temp_folder.child_folder_with_fragment(self.fragment)
 
     @property
     def fragment(self):
@@ -403,10 +430,9 @@ class ContentNode(SiteNode):
 
     @property
     def url(self):
-        return url.join(
-            self.site.settings.SITE_ROOT,
-            url.fixslash(
-                self.folder.get_fragment(self.site.content_folder)))
+        return url.join(self.site.settings.SITE_ROOT,
+                url.fixslash(
+                    self.folder.get_fragment(self.site.content_folder)))
 
     @property
     def type(self):
@@ -443,27 +469,29 @@ class MediaNode(SiteNode):
     @property
     def fragment(self):
         return self.folder.get_fragment(self.site.media_folder)
-    
+
     @property
     def url(self):
         return url.join(self.site.settings.SITE_ROOT,
-                url.fixslash(        
+                url.fixslash(
                     self.folder.get_fragment(self.site.folder)))
 
-    @property            
+    @property
     def type(self):
-        return "media"    
-        
+        return "media"
+
     @property
     def target_folder(self):
         deploy_folder = self.site.target_folder
-        return deploy_folder.child_folder_with_fragment(self.url)
+        return deploy_folder.child_folder_with_fragment(
+            Folder(self.site.media_folder.name).child(self.fragment))
 
     @property
     def temp_folder(self):
         temp_folder = self.site.temp_folder
-        return temp_folder.child_folder_with_fragment(self.url)      
-    
+        return temp_folder.child_folder_with_fragment(
+            Folder(self.site.media_folder.name).child(self.fragment))
+
 
 class SiteInfo(SiteNode):
     def __init__(self, settings, site_path):
@@ -473,7 +501,7 @@ class SiteInfo(SiteNode):
         self._stop = Event()
         self.nodemap = {site_path:self}
         self.resourcemap = {}
-        
+
     @property
     def name(self):
         return self.settings.SITE_NAME
@@ -481,27 +509,27 @@ class SiteInfo(SiteNode):
     @property
     def content_node(self):
         return self.nodemap[self.content_folder.path]
-    
+
     @property
     def fragment(self):
         return ""
-        
+
     @property
     def media_node(self):
-        return self.nodemap[self.media_folder.path]    
-    
+        return self.nodemap[self.media_folder.path]
+
     @property
     def layout_node(self):
-        return self.nodemap[self.layout_folder.path]    
-     
+        return self.nodemap[self.layout_folder.path]
+
     @property
     def content_folder(self):
         return Folder(self.settings.CONTENT_DIR)
-    
+
     @property
     def layout_folder(self):
         return Folder(self.settings.LAYOUT_DIR)
-        
+
     @property
     def media_folder(self):
         return Folder(self.settings.MEDIA_DIR)
@@ -513,39 +541,42 @@ class SiteInfo(SiteNode):
     @property
     def target_folder(self):
         return Folder(self.settings.DEPLOY_DIR)
-    
+
     def child_added(self, node):
         self.nodemap[node.folder.path] = node
-        
+
     def resource_added(self, resource):
         self.resourcemap[resource.file.path] = resource
-        
+
     def resource_removed(self, resource):
-        del self.resourcemap[resource.file.path]
-        
+        if resource.file.path in self.resourcemap:
+            del self.resourcemap[resource.file.path]
+
     def remove_node(self, node):
         for node in node.walk():
-            del self.nodemap[node.folder.path]
+            if node.folder.path in self.nodemap:
+                del self.nodemap[node.folder.path]
         for resource in node.walk_resources():
             self.resource_removed(resource)
-        node.parent.children.remove(node)                 
-    
+        if node.parent and node in node.parent.children:
+            node.parent.children.remove(node)
+
     def monitor(self, queue=None, waittime=1):
         if self.m and self.m.isAlive():
             raise "A monitor is currently running."
-        self._stop.clear()    
-        self.m = Thread(target=self.__monitor_thread__, 
+        self._stop.clear()
+        self.m = Thread(target=self.__monitor_thread__,
                             kwargs={"waittime":waittime, "queue": queue})
         self.m.start()
         return self.m
-    
+
     def dont_monitor(self):
         if not self.m or not self.m.isAlive():
             return
         self._stop.set()
         self.m.join()
         self._stop.clear()
-        
+
     def __monitor_thread__(self, queue, waittime):
         while not self._stop.isSet():
             try:
@@ -555,32 +586,31 @@ class SiteInfo(SiteNode):
                     queue.put({"exception": True})
                 raise
             if self._stop.isSet():
-                break        
+                break
             sleeper.sleep(waittime)
-     
+
     def find_and_add_resource(self, a_file):
-        resource = self.find_resource(a_file)        
+        resource = self.find_resource(a_file)
         if resource:
             return resource
         node = self.find_and_add_node(a_file.parent)
         return node.add_resource(a_file)
-        
+
     def find_and_add_node(self, folder):
         node = self.find_node(folder)
         if node:
             return node
-        node = self.find_and_add_node(folder.parent)    
+        node = self.find_and_add_node(folder.parent)
         return node.add_child(folder)
-        
+
     def refresh(self, queue=None):
         site = self
         # Have to poll for changes since there is no reliable way
         # to get notification in a platform independent manner
-        #                    
         class Visitor(object):
             def visit_folder(self, folder):
                 return folder.allow(**site.settings.FILTER)
-                
+
             def visit_file(self, a_file):
                 if not a_file.allow(**site.settings.FILTER):
                    return
@@ -599,12 +629,12 @@ class SiteInfo(SiteNode):
                            "resource": resource,
                            "exception": False
                        })
-     
+
         visitor = Visitor()
         self.layout_folder.walk(visitor)
         self.content_folder.walk(visitor)
         self.media_folder.walk(visitor)
-        
+
         nodes_to_remove = []
         for node in self.walk():
             if not node.folder.exists:
@@ -614,10 +644,10 @@ class SiteInfo(SiteNode):
                     "exception": False
                 })
                 nodes_to_remove += [node]
-                  
+
         for node in nodes_to_remove:
             self.remove_node(node)
-                    
+
         for resource in self.walk_resources():
             if not resource.file.exists:
                 if queue:

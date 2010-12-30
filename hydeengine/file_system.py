@@ -12,7 +12,7 @@ import codecs
 import fnmatch
 from datetime import datetime
 from distutils import dir_util, file_util
-from .path_util import PathUtil
+from path_util import PathUtil
 
 
 class FileSystemEntity(object):
@@ -152,6 +152,14 @@ class File(FileSystemEntity):
     """
     def __init__(self, path):
         super(File, self).__init__(path)
+
+    @property
+    def size(self):
+        """
+        Gets the file size
+        """
+        return os.path.getsize(self.path)
+        #return 1
 
     def has_extension(self, extension):
         """

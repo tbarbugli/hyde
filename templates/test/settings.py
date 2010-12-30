@@ -10,7 +10,7 @@ DEPLOY_DIR = os.path.join(ROOT_PATH, 'deploy')
 TMP_DIR = os.path.join(ROOT_PATH, 'deploy_tmp')
 
 BACKUPS_DIR = os.path.join(ROOT_PATH, 'backups')
-BACKUP = False                 
+BACKUP = False
 
 BLOG_DIR = os.path.join(CONTENT_DIR,"blog")
 
@@ -44,11 +44,11 @@ APPEND_SLASH = False
 
 # {folder : extension : (processors)}
 # The processors are run in the given order and are chained.
-# Only a lone * is supported as an indicator for folders. Path 
+# Only a lone * is supported as an indicator for folders. Path
 # should be specified. No wildcard card support yet.
- 
-# Starting under the media folder. For example, if you have media/css under 
-# your site root,you should specify just css. If you have media/css/ie you 
+
+# Starting under the media folder. For example, if you have media/css under
+# your site root,you should specify just css. If you have media/css/ie you
 # should specify css/ie for the folder name. css/* is not supported (yet).
 
 # Extensions do not support wildcards.
@@ -59,13 +59,13 @@ MEDIA_PROCESSORS = {
                 'hydeengine.media_processors.YUICompressor',),
         '.ccss':('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.CleverCSS',
-                'hydeengine.media_processors.YUICompressor',),  
+                'hydeengine.media_processors.YUICompressor',),
         '.sass':('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.SASS',
-                'hydeengine.media_processors.YUICompressor',),                
+                'hydeengine.media_processors.YUICompressor',),
         '.less':('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.LessCSS',
-                'hydeengine.media_processors.YUICompressor',),                
+                'hydeengine.media_processors.YUICompressor',),
         '.hss':(
                 'hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.HSS',
@@ -73,14 +73,20 @@ MEDIA_PROCESSORS = {
         '.js':(
                 'hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.YUICompressor',)
-    } 
+    }
 }
 
 CONTENT_PROCESSORS = {
     'prerendered/': {
-        '*.*' : 
+        '*.*' :
             ('hydeengine.content_processors.PassthroughProcessor',)
             }
+}
+
+CATEGORIES = {
+    'wishes': {
+        'description': 'Warm wishes from the bottom of my heart'
+    }
 }
 
 SITE_POST_PROCESSORS = {
@@ -90,14 +96,15 @@ SITE_POST_PROCESSORS = {
     #                'pattern':"*.js"
     #        }
     #    }
-}                       
+}
 
 SITE_PRE_PROCESSORS = {
     'blog': {
-        'hydeengine.site_pre_processors.CategoriesManager' : {},
-        'hydeengine.site_pre_processors.CategoriesArchiveGenerator' : {
-                'template': '_category.html',
-            },
+        'hydeengine.site_pre_processors.CategoriesManager' : {
+            'template': '_category.html',
+            'listing_template': '_categorylist.html',
+            'meta': CATEGORIES
+         }
     },
     '/': {
         'hydeengine.site_pre_processors.NodeInjector' : {
@@ -112,18 +119,18 @@ CONTEXT = {
     'GENERATE_CLEAN_URLS': GENERATE_CLEAN_URLS
 }
 
-FILTER = { 
+FILTER = {
     'include': (".htaccess",),
     'exclude': (".*","*~")
-}        
+}
 
 
-#Processor Configuration  
+#Processor Configuration
 
-# 
+#
 #  Set this to the output of `which growlnotify`. If `which`  returns emtpy,
 #  install growlnotify from the Extras package that comes with the Growl disk image.
-# 
+#
 #
 GROWL = None
 
@@ -132,7 +139,7 @@ GROWL = None
 # want to compress JS/CSS. Project homepage:
 # http://developer.yahoo.com/yui/compressor/
 YUI_COMPRESSOR = "./lib/yuicompressor-2.4.1.jar"
-#YUI_COMPRESSOR = None 
+#YUI_COMPRESSOR = None
 
 # path for HSS, which is a preprocessor for CSS-like files (*.hss)
 # project page at http://ncannasse.fr/projects/hss
@@ -146,4 +153,5 @@ TEMPLATE_DIRS = (LAYOUT_DIR, CONTENT_DIR, TMP_DIR, MEDIA_DIR)
 INSTALLED_APPS = (
     'hydeengine',
     'django.contrib.webdesign',
+    'django.contrib.markup',
 )
