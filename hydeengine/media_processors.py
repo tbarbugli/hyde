@@ -75,18 +75,26 @@ class LessCSS:
             raise
         else:
             resource.source_file.delete()
-            
+
             """
             Assign our out_file as the source_file for this resource in order for
             other processors to be able to correctly process this resource too.
-            
+
             This is needed because this processor changes the extension of the source file.
-            
+
             See bugreport at http://support.ringce.com/ringce/topics/lesscss_yuicompressor_fail_and_sitemap_generation_broken
             """
             resource.source_file = out_file
         if not out_file.exists:
             print 'Error Occurred when processing with Less'
+
+class CSSPrefixer:
+    @staticmethod
+    def process(resource):
+        import cssprefixer
+        data = resource.source_file.read_all()
+        out = cssprefixer.process(data, debug=False, minify=False)
+        resource.source_file.write(out)
 
 class YUICompressor:
     @staticmethod
