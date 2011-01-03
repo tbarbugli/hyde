@@ -96,6 +96,14 @@ class CSSPrefixer:
         out = cssprefixer.process(data, debug=False, minify=False)
         resource.source_file.write(out)
 
+class CSSmin:
+    @staticmethod
+    def process(resource):
+        import cssmin
+        data = resource.source_file.read_all()
+        out = cssmin.cssmin(data)
+        resource.source_file.write(out)
+
 class CoffeeScript:
     @staticmethod
     def process(resource):

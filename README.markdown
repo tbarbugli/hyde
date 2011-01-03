@@ -153,6 +153,14 @@ You need to install CSSPrefixer using ``sudo easy_install cssprefixer`` command 
 
 [cssprefixer]: http://cssprefixer.appspot.com
 
+#### CSSmin Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSmin'`` and minifies them.
+
+You need to install jsmin using ``sudo easy_install cssmin`` command for this processor to work.
+
+[cssmin]: http://github.com/zacharyvoase/cssmin
+
 #### CoffeeScript Processor
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CoffeeScript'`` and converts them to javascript.
