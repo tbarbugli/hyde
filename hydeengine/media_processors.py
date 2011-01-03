@@ -96,6 +96,19 @@ class CSSPrefixer:
         out = cssprefixer.process(data, debug=False, minify=False)
         resource.source_file.write(out)
 
+class CoffeeScript:
+    @staticmethod
+    def process(resource):
+        coffee = settings.COFFEE_PATH
+        if not coffee or not os.path.exists(coffee):
+            raise ValueError("CoffeeScript Processor cannot be found at [%s]" % coffee)
+        status, output = commands.getstatusoutput(
+        u"%s -b -c %s" % (coffee, resource.source_file.path))
+        if status > 0:
+            print output
+            return None
+        resource.source_file.delete()
+
 class JSmin:
     @staticmethod
     def process(resource):
