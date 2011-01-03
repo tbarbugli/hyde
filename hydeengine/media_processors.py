@@ -96,6 +96,14 @@ class CSSPrefixer:
         out = cssprefixer.process(data, debug=False, minify=False)
         resource.source_file.write(out)
 
+class JSmin:
+    @staticmethod
+    def process(resource):
+        import jsmin
+        data = resource.source_file.read_all()
+        out = jsmin.jsmin(data)
+        resource.source_file.write(out)
+
 class YUICompressor:
     @staticmethod
     def process(resource):
