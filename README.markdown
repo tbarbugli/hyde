@@ -145,6 +145,22 @@ You need to install Less (see [the project website][lesscss]) and set the ``LESS
 
 [lesscss]: http://lesscss.org/
 
+#### CSSPrefixer Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSPrefixer'`` and adds vendor prefixed versions of CSS3 rules.
+
+You need to install CSSPrefixer using ``sudo easy_install cssprefixer`` command for this processor to work.
+
+[cssprefixer]: http://cssprefixer.appspot.com
+
+#### JSmin Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.JSmin'`` and minifies them.
+
+You need to install jsmin using ``sudo easy_install jsmin`` command for this processor to work.
+
+[jsmin]: http://pypi.python.org/pypi/jsmin
+
 #### Thumbnail Processor
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.Thumbnail'`` and creates small "thumbnailed" copies. The aspect ratios of the images will be preserved.
