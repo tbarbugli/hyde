@@ -177,6 +177,8 @@ class Thumbnail:
         from PIL import Image
 
         i = Image.open(resource.source_file.path)
+        if i.mode != 'RGBA':
+                i = i.convert('RGBA')
         i.thumbnail(
             (settings.THUMBNAIL_MAX_WIDTH, settings.THUMBNAIL_MAX_HEIGHT),
             Image.ANTIALIAS
