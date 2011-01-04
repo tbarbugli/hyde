@@ -421,3 +421,4 @@ The following websites are built using hyde and are open sourced.
 - [Ken](http://github.com/xythian)
 - [Nico Mandery](http://github.com/nmandery)
 - [Chetan Surpur](http://github.com/chetan51)
+- [myfreeweb](http://github.com/myfreeweb)
