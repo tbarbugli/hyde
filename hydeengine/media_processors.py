@@ -58,6 +58,7 @@ class SASS:
             print output
             return None
         resource.source_file.delete()
+        resource.source_file = out_file
 
 class LessCSS:
     @staticmethod
