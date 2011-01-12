@@ -1,5 +1,4 @@
 import os
-import commands
 import re
 import sys
 from django.template.loader import render_to_string
@@ -36,10 +35,10 @@ class HSS:
         hss = settings.HSS_PATH
         if not hss or not os.path.exists(hss):
             raise ValueError("HSS Processor cannot be found at [%s]" % hss)
-        status, output = commands.getstatusoutput(
-        u"%s %s -output %s/" % (hss, resource.source_file.path, out_file.parent.path))
-        if status > 0:
-            print output
+        try:
+            check_call([hss, resource.source_file.path, "-output", out_file.parent.path + '/'])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling HSS Processor:', e
             return None
         resource.source_file.delete()
         out_file.copy_to(resource.source_file.path)
@@ -52,10 +51,10 @@ class SASS:
         sass = settings.SASS_PATH
         if not sass or not os.path.exists(sass):
             raise ValueError("SASS Processor cannot be found at [%s]" % sass)
-        status, output = commands.getstatusoutput(
-        u"%s %s %s" % (sass, resource.source_file.path, out_file))
-        if status > 0:
-            print output
+        try:
+            check_call([sass, resource.source_file.path, out_file])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling SASS Processor:', e
             return None
         resource.source_file.delete()
         resource.source_file = out_file
@@ -72,8 +71,7 @@ class LessCSS:
         try:
             check_call([less, resource.source_file.path, out_file.path])
         except CalledProcessError, e:
-            print 'Syntax Error when calling less'
-            raise
+            print 'Syntax Error when calling less:', e
         else:
             resource.source_file.delete()
 
@@ -111,10 +109,10 @@ class CoffeeScript:
         coffee = settings.COFFEE_PATH
         if not coffee or not os.path.exists(coffee):
             raise ValueError("CoffeeScript Processor cannot be found at [%s]" % coffee)
-        status, output = commands.getstatusoutput(
-        u"%s -b -c %s" % (coffee, resource.source_file.path))
-        if status > 0:
-            print output
+        try:
+            check_call([coffee, "-b", "-c", resource.source_file.path])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling CoffeeScript:', e
             return None
         resource.source_file.delete()
 
@@ -142,10 +140,12 @@ class YUICompressor:
             "YUI Compressor cannot be found at [%s]" % compress)
 
         tmp_file = File(resource.source_file.path + ".z-tmp")
-        status, output = commands.getstatusoutput(
-        u"java -jar %s %s > %s" % (compress, resource.source_file.path, tmp_file.path))
-        if status > 0:
-            print output
+        try:
+            check_call(["java", "-jar", compress,
+                resource.source_file.path, "-o",
+                tmp_file.path])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling YUI Compressor:', e
         else:
             resource.source_file.delete()
             tmp_file.move_to(resource.source_file.path)
@@ -164,10 +164,12 @@ class ClosureCompiler:
             "Closure Compiler cannot be found at [%s]" % compress)
 
         tmp_file = File(resource.source_file.path + ".z-tmp")
-        status, output = commands.getstatusoutput(
-        u"java -jar %s --js=%s --js_output_file=%s" % (compress, resource.source_file.path, tmp_file.path))
-        if status > 0:
-            print output
+        try:
+            check_call(["java", "-jar", compress, "--js",
+                resource.source_file.path, "--js_output_file",
+                tmp_file.path])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling Closure Compiler:', e
         else:
             resource.source_file.delete()
             tmp_file.move_to(resource.source_file.path)
