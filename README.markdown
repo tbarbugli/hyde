@@ -1,6 +1,10 @@
+**Note:**
+While this remains the most complete and functional version of hyde, the new 
+version (potentially 1.0) is [under heavy development](https://github.com/hydepy/hyde).
+
 # HYDE
 
-0.5.2
+0.5.3
 
 This document should give enough information to get you up and running. Check
 the [wiki](http://wiki.github.com/lakshmivyas/hyde) for detailed documentation.
