@@ -48,11 +48,12 @@ class SASS:
     @staticmethod
     def process(resource):
         out_file = File(resource.source_file.path_without_extension + ".css")
+        load_path = os.path.dirname(resource.file.path)
         sass = settings.SASS_PATH
         if not sass or not os.path.exists(sass):
             raise ValueError("SASS Processor cannot be found at [%s]" % sass)
         try:
-            check_call([sass, resource.source_file.path, out_file])
+            check_call([sass, "-I", load_path, resource.source_file.path, out_file])
         except CalledProcessError, e:
             print 'Syntax Error when calling SASS Processor:', e
             return None

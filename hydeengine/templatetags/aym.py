@@ -180,6 +180,33 @@ class SyntaxHighlightNode(template.Node):
         return self.lexers.get_lexer_by_name(self.lexer)
 
 
+@register.tag(name="bibtex")
+def bibtexParser(parser, token):
+    nodelist = parser.parse(('endbibtex',))
+    parser.delete_first_token()
+    return BibtexNode(nodelist)
+
+class BibtexNode(template.Node):
+    def __init__(self, nodelist):
+        self.nodelist = nodelist
+
+    def render(self, context):
+        output = self.nodelist.render(context)
+        try:
+            from zs.bibtex.parser import parse_string
+            from StringIO import StringIO
+        except ImportError:
+            print u"Requires zs.bibtex library to use bibtex tag."
+            raise
+        biblio =  parse_string(output)
+        context["page"].bibliography=biblio
+        context["page"].bibitex=output
+            
+        return "" 
+
+
+
+
 class NewlineLessNode(Node):
     def __init__(self, nodelist):
         self.nodelist = nodelist

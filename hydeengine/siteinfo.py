@@ -1,13 +1,12 @@
-import sys
-import re
-import time as sleeper
-import operator
-
 from datetime import date, datetime, time
+import operator
+import re
 from threading import Thread, Event
+import time as sleeper
 
 from hydeengine import url
 from hydeengine.file_system import File, Folder
+
 
 class SiteResource(object):
     def __init__(self, a_file, node):
@@ -56,19 +55,19 @@ class SiteResource(object):
     def __repr__(self):
         return str(self.file)
 
+
 class Page(SiteResource):
     def __init__(self, a_file, node):
         if not node:
             raise ValueError("Page cannot exist without a node")
         super(Page, self).__init__(a_file, node)
-        self.created = datetime.strptime("2000-01-01", "%Y-%m-%d")
-        self.updated = None
         listing_pages = self.node.site.settings.LISTING_PAGE_NAMES
-
         self.listing = a_file.name_without_extension in listing_pages
         self.exclude = False
         self.display_in_list = None
         self.module = node.module
+        self.created = datetime.strptime("2000-01-01", "%Y-%m-%d")
+        self.updated = None
         self.process()
         if type(self.created) == date:
             self.created = datetime.combine(self.created, time())
@@ -85,7 +84,7 @@ class Page(SiteResource):
     def get_context_text(self):
         start = re.compile(r'.*?{%\s*hyde\s+(.*?)(%}|$)')
         end = re.compile(r'(.*?)(%})')
-        fin = open(self.file.path,'r')
+        fin = open(self.file.path, 'r')
         started = False
         text = ''
         matcher = start
@@ -139,7 +138,6 @@ class Page(SiteResource):
             page_url += "/"
         return page_url
 
-
     @property
     def url(self):
         page_url = super(Page, self).url
@@ -157,6 +155,7 @@ class Page(SiteResource):
         if self.node.site.settings.GENERATE_CLEAN_URLS:
             page_url = self._make_clean_url(page_url)
         return page_url
+
 
 class SiteNode(object):
     def __init__(self, folder, parent=None):
@@ -176,12 +175,10 @@ class SiteNode(object):
     def simple_dict(self):
         ress = []
         for resource in self.walk_resources():
-            fragment =  Folder(
-                            resource.node.folder.get_fragment(
-                                self.site.folder.path)).child(resource.file.name)
-            res = dict(
-                        name=resource.file.name,
-                        path=fragment)
+            fragment = Folder(
+                resource.node.folder.get_fragment(
+                    self.site.folder.path)).child(resource.file.name)
+            res = dict(name=resource.file.name, path=fragment)
             ress.append(res)
         nodes = []
         for node in self.children:
@@ -299,6 +296,7 @@ class SiteNode(object):
     def type(self):
         return None
 
+
 class ContentNode(SiteNode):
 
     def __init__(self, folder, parent=None):
@@ -308,6 +306,38 @@ class ContentNode(SiteNode):
 
     walk_pages = SiteNode.walk_resources
     walk_pages_reverse = SiteNode.walk_resources_reverse
+
+    def walk_child_pages(self, sorting_key='url'):
+        """
+        Like walk_resources, but start with the children nodes of the
+        current node, and only yield .html Page objects (instead of Pages
+        and other files).
+
+        Also add another attribute, level, used to create indented
+        display when listing content.
+        """
+        child_pages = []
+        for child in self.children:
+            for node in child.walk():
+                for resource in node.resources:
+                    if resource.file.kind == "html":
+                        resource.level = resource.url.count('/')
+                        child_pages.append(resource)
+
+        def get_sorting_key(a_resource):
+            return getattr(a_resource, sorting_key)
+        child_pages.sort(key=get_sorting_key)
+        return child_pages
+
+    def walk_child_pages_by_updated(self):
+        """
+        Like walk_child_pages, but return results sorted by the
+        updated date, i.e. chronological order with most recent Page
+        objects first.
+        """
+        child_pages = self.walk_child_pages(sorting_key='updated')
+        child_pages.reverse()
+        return child_pages
 
     @property
     def module(self):
@@ -406,11 +436,12 @@ class ContentNode(SiteNode):
 
     @property
     def type(self):
-      return "content"
+        return "content"
 
     @property
     def listing_url(self):
         return self.listing_page.url
+
 
 class LayoutNode(SiteNode):
 
@@ -426,6 +457,7 @@ class LayoutNode(SiteNode):
     @property
     def type(self):
         return "layout"
+
 
 class MediaNode(SiteNode):
 
@@ -459,6 +491,7 @@ class MediaNode(SiteNode):
         temp_folder = self.site.temp_folder
         return temp_folder.child_folder_with_fragment(
             Folder(self.site.media_folder.name).child(self.fragment))
+
 
 class SiteInfo(SiteNode):
     def __init__(self, settings, site_path):
