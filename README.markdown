@@ -1,5 +1,5 @@
 **Note:**
-While this remains the most complete and functional version of hyde, the new 
+While this remains the most complete and functional version of hyde, the new
 version (potentially 1.0) is [under heavy development](https://github.com/hydepy/hyde).
 
 # HYDE
@@ -406,6 +406,7 @@ The following websites are built using hyde and are open sourced.
 - [Kailoa Kadano](http://github.com/kailoa)
 - [Tom von Schwerdtner](http://github.com/tvon)
 - [montecristo](http://github.com/montecristo)
+- [dbr/Ben](https://github.com/dbr)
 - [Valentin Jacquemin](http://github.com/poxd)
 - [Johannes Reinhard](http://github.com/SpeckFleck)
 - [Steve Losh](http://github.com/sjl)
@@ -415,7 +416,7 @@ The following websites are built using hyde and are open sourced.
 - [Andrey](http://github.com/andrulik)
 - [Toby White](http://github.com/tow)
 - [Tim Freund](http://github.com/timfreund)
-- [Russell H](http://github.com/russellhaering)
+- [Russell Haering](http://github.com/russellhaering)
 - [timo](http://github.com/timo)
 - [Alex Schworer](http://github.com/schworer)
 - [holmboe](http://github.com/holmboe)
@@ -425,9 +426,9 @@ The following websites are built using hyde and are open sourced.
 - [Ken](http://github.com/xythian)
 - [Nico Mandery](http://github.com/nmandery)
 - [Chetan Surpur](http://github.com/chetan51)
+- [Pascal Widdershoven](https://github.com/PascalW)
 - [Kai](https://github.com/limist)
 - [myfreeweb](http://github.com/myfreeweb)
 - [Paul Bonser](https://github.com/pib)
 - [Yoann Pigné](https://github.com/pigne)
 - [Hubert HANGHOFER](https://github.com/brewbert)
-
