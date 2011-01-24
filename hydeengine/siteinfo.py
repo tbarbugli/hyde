@@ -61,13 +61,13 @@ class Page(SiteResource):
         if not node:
             raise ValueError("Page cannot exist without a node")
         super(Page, self).__init__(a_file, node)
-        self.created = datetime.strptime("2000-01-01", "%Y-%m-%d")
-        self.updated = self.last_modified
         listing_pages = self.node.site.settings.LISTING_PAGE_NAMES
         self.listing = a_file.name_without_extension in listing_pages
         self.exclude = False
-        self.display_in_list = True
+        self.display_in_list = None
         self.module = node.module
+        self.created = datetime.strptime("2000-01-01", "%Y-%m-%d")
+        self.updated = None
         self.process()
         if type(self.created) == date:
             self.created = datetime.combine(self.created, time())
