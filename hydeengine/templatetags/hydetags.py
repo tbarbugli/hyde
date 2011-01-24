@@ -1,3 +1,9 @@
+from datetime import datetime
+import operator
+import os
+import re
+import string
+
 from django import template
 from django.conf import settings
 from django.template import Template
@@ -5,11 +11,9 @@ from django.template.loader import render_to_string
 from django.template.defaultfilters import truncatewords_html, stringfilter
 from django.template.loader_tags import do_include
 from django.template import Library
+from django.utils.safestring import mark_safe
+
 from hydeengine.file_system import File, Folder
-import re
-import string
-import operator
-from datetime import datetime
 
 
 marker_start = "<!-- Hyde::%s::Begin -->"
@@ -18,6 +22,7 @@ current_referrer = 'current_referrer'
 
 register = Library()
 
+
 class HydeContextNode(template.Node):
     def __init__(self):
         pass
@@ -25,9 +30,11 @@ class HydeContextNode(template.Node):
     def render(self, context):
         return ""
 
+
 @register.tag(name="hyde")
 def hyde_context(parser, token):
     return HydeContextNode()
+
 
 @register.tag(name="excerpt")
 def excerpt(parser, token):
@@ -35,11 +42,13 @@ def excerpt(parser, token):
     parser.delete_first_token()
     return BracketNode("Excerpt", nodelist)
 
+
 @register.tag(name="article")
 def article(parser, token):
     nodelist = parser.parse(('endarticle',))
     parser.delete_first_token()
     return BracketNode("Article", nodelist)
+
 
 @register.tag(name="refer")
 def refer_page(parser, token):
@@ -47,17 +56,19 @@ def refer_page(parser, token):
     if (len(bits) < 5 or
         bits[1] != 'to' or
         bits[3] != 'as'):
-        raise TemplateSyntaxError, "Syntax: 'refer to _page_path_ as _namespace_'"
+        raise TemplateSyntaxError("Syntax: 'refer to _page_path_ as _namespace_'")
     return ReferNode(bits[2], bits[4])
+
 
 @register.tag(name="reference")
 def reference(parser, token):
     bits = token.contents.split()
     if len(bits) < 2:
-        raise TemplateSyntaxError, "Syntax: 'reference _variable_'"
+        raise TemplateSyntaxError("Syntax: 'reference _variable_'")
     nodelist = parser.parse(('endreference',))
     parser.delete_first_token()
     return ReferenceNode(bits[1], nodelist)
+
 
 class ReferNode(template.Node):
     def __init__(self, path, namespace):
@@ -76,6 +87,7 @@ class ReferNode(template.Node):
         context[self.namespace] = var
         return ''
 
+
 class ReferenceNode(template.Node):
     def __init__(self, variable, nodelist):
         self.variable = variable
@@ -86,6 +98,7 @@ class ReferenceNode(template.Node):
         if current_referrer in context and context[current_referrer]:
             context[current_referrer][self.variable] = rendered_string
         return rendered_string
+
 
 class BracketNode(template.Node):
     def __init__(self, marker, nodelist):
@@ -100,7 +113,7 @@ class BracketNode(template.Node):
 
 
 class LatestExcerptNode(template.Node):
-    def __init__(self, path, words = 50):
+    def __init__(self, path, words=50):
         self.path = path
         self.words = words
 
@@ -110,6 +123,7 @@ class LatestExcerptNode(template.Node):
         sitemap_node = context["site"].find_node(Folder(self.path))
         if not sitemap_node:
             sitemap_node = context["site"]
+
         def later(page1, page2):
             return (page1, page2)[page2.created > page1.created]
         page = reduce(later, sitemap_node.walk_pages())
@@ -127,12 +141,12 @@ class LatestExcerptNode(template.Node):
         else:
             return ""
 
-class RecentPostsNode(template.Node):
 
+class RecentPostsNode(template.Node):
     def __init__(self, var='recent_posts', count=5, node=None, categories=None):
         self.var = var
         self.count = count
-        self.node=node
+        self.node = node
         self.categories = categories
 
     def render(self, context):
@@ -164,7 +178,6 @@ class RecentPostsNode(template.Node):
             posts = filter(lambda page: page.display_in_list and \
                                             reduce(lambda c1,c2: c1 or category_filter.match(c2) is not None, \
                                                     hasattr(page, 'categories') and page.categories or [], False), self.node.complete_page_list)
-            print self.categories,posts
             context[self.var] = posts[:int(self.count)]
         return ''
 
@@ -186,6 +199,7 @@ def recent_posts(parser, token):
         categories = tokens[4]
     return RecentPostsNode(var, count, node, categories)
 
+
 @register.tag(name="latest_excerpt")
 def latest_excerpt(parser, token):
     tokens = token.split_contents()
@@ -196,6 +210,7 @@ def latest_excerpt(parser, token):
     if len(tokens) > 2:
         words = int(tokens[2])
     return LatestExcerptNode(path, words)
+
 
 @register.tag(name="render_excerpt")
 def render_excerpt(parser, token):
@@ -208,6 +223,7 @@ def render_excerpt(parser, token):
         words = int(tokens[2])
     return RenderExcerptNode(path, words)
 
+
 @register.tag(name="render_article")
 def render_article(parser, token):
     tokens = token.split_contents()
@@ -216,8 +232,9 @@ def render_article(parser, token):
         path = parser.compile_filter(tokens[1])
     return RenderArticleNode(path)
 
+
 class RenderExcerptNode(template.Node):
-    def __init__(self, page, words = 50):
+    def __init__(self, page, words=50):
         self.page = page
         self.words = words
 
@@ -239,19 +256,19 @@ class RenderArticleNode(template.Node):
 
 
 def get_bracketed_content(context, page, marker):
-        rendered = None
-        original_page = context['page']
-        context['page'] = page
-        rendered = render_to_string(str(page), context)
-        context['page'] = original_page
-        bracket_start = marker_start % marker
-        bracket_end = marker_end % marker
-        start = rendered.find(bracket_start)
-        if not start == -1:
-            start = start + len(bracket_start)
-            end = rendered.find(bracket_end, start)
-            return rendered[start:end]
-        return ""
+    rendered = None
+    original_page = context['page']
+    context['page'] = page
+    rendered = render_to_string(str(page), context)
+    context['page'] = original_page
+    bracket_start = marker_start % marker
+    bracket_end = marker_end % marker
+    start = rendered.find(bracket_start)
+    if not start == -1:
+        start = start + len(bracket_start)
+        end = rendered.find(bracket_end, start)
+        return rendered[start:end]
+    return ""
 
 
 def hyde_thumbnail(url):
@@ -270,6 +287,7 @@ def value_for_key(dictionary, key):
     value = dictionary[key]
     return value
 
+
 @register.filter
 def xmldatetime(dt):
     if not dt:
@@ -280,14 +298,16 @@ def xmldatetime(dt):
         zprefix = tz[:3] + ":" + tz[3:]
     return dt.strftime("%Y-%m-%dT%H:%M:%S") + zprefix
 
+
 @register.filter
 def remove_date_prefix(slug, sep="-"):
-    expr = sep.join([r"\d{2,4}"]*3 + ["(.*)"])
+    expr = sep.join([r"\d{2,4}"] * 3 + ["(.*)"])
     match = re.match(expr, slug)
     if not match:
         return slug
     else:
         return match.group(0)
+
 
 @register.filter
 def unslugify(slug):
@@ -296,6 +316,7 @@ def unslugify(slug):
                         replace(".", "").split()
 
     return ' '.join(map(lambda str: str.capitalize(), words))
+
 
 @register.tag(name="hyde_listing_page_rewrite_rules")
 def hyde_listing_page_rewrite_rules(parser, token):
@@ -316,11 +337,12 @@ RewriteRule ^(.*) $1/${name}.html
 """
 )
 
+
 class RenderHydeListingPageRewriteRulesNode(template.Node):
     def render(self, context):
         if not settings.LISTING_PAGE_NAMES:
             return ''
-        rules = [] # for LISTING_PAGE_NAMES listings
+        rules = []  # For LISTING_PAGE_NAMES listings
         for name in settings.LISTING_PAGE_NAMES:
             rules.append(LPN_REWRITE_RULE.safe_substitute( \
                 {'name': name}))
@@ -329,25 +351,27 @@ class RenderHydeListingPageRewriteRulesNode(template.Node):
           + ''.join(rules) \
           + "\n####  END GENERATED REWRITE RULES  ####"
 
-class IncludeTextNode(template.Node):
-  def __init__(self, include_node):
-      self.include_node = include_node
 
-  def render(self, context):
-      try:
-          import markdown
-          import typogrify
-      except ImportError:
-          print u"`includetext` requires Markdown and Typogrify."
-          raise
-      output = self.include_node.render(context)
-      output = markdown.markdown(output)
-      output = typogrify.typogrify(output)
-      return output
+class IncludeTextNode(template.Node):
+    def __init__(self, include_node):
+        self.include_node = include_node
+
+    def render(self, context):
+        try:
+            import markdown
+            import typogrify
+        except ImportError:
+            print u"`includetext` requires Markdown and Typogrify."
+            raise
+        output = self.include_node.render(context)
+        output = markdown.markdown(output)
+        output = typogrify.typogrify(output)
+        return output
+
 
 @register.tag(name="includetext")
 def includetext(parser, token):
-      return IncludeTextNode(do_include(parser, token))
+    return IncludeTextNode(do_include(parser, token))
 
 
 class RecentResourcesNode(template.Node):
@@ -380,6 +404,7 @@ def recent_resources(parser, token):
 
     return RecentResourcesNode(*args, **kwargs)
 
+
 class RenderNode(template.Node):
     def __init__(self, template_path, node_list=None, data=None):
         self.template_path = template_path
@@ -399,13 +424,14 @@ class RenderNode(template.Node):
         context.pop()
         return out
 
+
 @register.tag(name='render')
 def render(parser, token):
     bits = token.contents.split()
     if len(bits) < 2:
-        raise TemplateSyntaxError, "Syntax: {%render _template_%}YAML{%endrender%}'"
+        raise TemplateSyntaxError("Syntax: {% render _template_ %}YAML{% endrender %}'")
     if ((len(bits) > 2 and len(bits) < 4) or (len(bits) == 4 and bits[2] != "with")):
-        raise TemplateSyntaxError, "Syntax: {%render _template_ with var_data%}'"
+        raise TemplateSyntaxError("Syntax: {% render _template_ with var_data %}'")
     template_path = bits[1]
     nodelist = None
     data = None

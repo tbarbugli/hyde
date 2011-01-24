@@ -68,7 +68,7 @@ class TestHydeTags:
         actual_text = actual_resource.temp_file.read_all()
         if ORIGINAL_PRE_PROCESSORS:
             settings.SITE_PRE_PROCESSORS = ORIGINAL_PRE_PROCESSORS
-        assert expected_text == actual_text
+        assert_html_equals(expected_text, actual_text)
 
     def test_render_inline_data(self):
         render_folder = TEST_SITE.child_folder('content/render');
