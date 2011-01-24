@@ -58,6 +58,7 @@ class SASS:
             print output
             return None
         resource.source_file.delete()
+        resource.source_file = out_file
 
 class LessCSS:
     @staticmethod
@@ -75,18 +76,55 @@ class LessCSS:
             raise
         else:
             resource.source_file.delete()
-            
+
             """
             Assign our out_file as the source_file for this resource in order for
             other processors to be able to correctly process this resource too.
-            
+
             This is needed because this processor changes the extension of the source file.
-            
+
             See bugreport at http://support.ringce.com/ringce/topics/lesscss_yuicompressor_fail_and_sitemap_generation_broken
             """
             resource.source_file = out_file
         if not out_file.exists:
             print 'Error Occurred when processing with Less'
+
+class CSSPrefixer:
+    @staticmethod
+    def process(resource):
+        import cssprefixer
+        data = resource.source_file.read_all()
+        out = cssprefixer.process(data, debug=False, minify=False)
+        resource.source_file.write(out)
+
+class CSSmin:
+    @staticmethod
+    def process(resource):
+        import cssmin
+        data = resource.source_file.read_all()
+        out = cssmin.cssmin(data)
+        resource.source_file.write(out)
+
+class CoffeeScript:
+    @staticmethod
+    def process(resource):
+        coffee = settings.COFFEE_PATH
+        if not coffee or not os.path.exists(coffee):
+            raise ValueError("CoffeeScript Processor cannot be found at [%s]" % coffee)
+        status, output = commands.getstatusoutput(
+        u"%s -b -c %s" % (coffee, resource.source_file.path))
+        if status > 0:
+            print output
+            return None
+        resource.source_file.delete()
+
+class JSmin:
+    @staticmethod
+    def process(resource):
+        import jsmin
+        data = resource.source_file.read_all()
+        out = jsmin.jsmin(data)
+        resource.source_file.write(out)
 
 class YUICompressor:
     @staticmethod
@@ -140,6 +178,8 @@ class Thumbnail:
         from PIL import Image
 
         i = Image.open(resource.source_file.path)
+        if i.mode != 'RGBA':
+                i = i.convert('RGBA')
         i.thumbnail(
             (settings.THUMBNAIL_MAX_WIDTH, settings.THUMBNAIL_MAX_HEIGHT),
             Image.ANTIALIAS

@@ -145,6 +145,38 @@ You need to install Less (see [the project website][lesscss]) and set the ``LESS
 
 [lesscss]: http://lesscss.org/
 
+#### CSSPrefixer Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSPrefixer'`` and adds vendor prefixed versions of CSS3 rules.
+
+You need to install CSSPrefixer using ``sudo easy_install cssprefixer`` command for this processor to work.
+
+[cssprefixer]: http://cssprefixer.appspot.com
+
+#### CSSmin Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSmin'`` and minifies them.
+
+You need to install jsmin using ``sudo easy_install cssmin`` command for this processor to work.
+
+[cssmin]: http://github.com/zacharyvoase/cssmin
+
+#### CoffeeScript Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CoffeeScript'`` and converts them to javascript.
+
+You need to install CoffeeScript (see [the project website][coffeescript]) and set the ``COFFEE_PATH`` variable to the path to the ``coffee`` script.
+
+[coffeescript]: http://jashkenas.github.com/coffee-script/
+
+#### JSmin Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.JSmin'`` and minifies them.
+
+You need to install jsmin using ``sudo easy_install jsmin`` command for this processor to work.
+
+[jsmin]: http://pypi.python.org/pypi/jsmin
+
 #### Thumbnail Processor
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.Thumbnail'`` and creates small "thumbnailed" copies. The aspect ratios of the images will be preserved.
@@ -389,3 +421,4 @@ The following websites are built using hyde and are open sourced.
 - [Ken](http://github.com/xythian)
 - [Nico Mandery](http://github.com/nmandery)
 - [Chetan Surpur](http://github.com/chetan51)
+- [myfreeweb](http://github.com/myfreeweb)

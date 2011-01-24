@@ -7,6 +7,7 @@ import mimetypes
 import os
 import sys
 import subprocess
+import traceback
 import urllib
 
 from collections import defaultdict
@@ -417,7 +418,7 @@ class Generator(object):
             self.complete_generation()
         except Exception, e:
             print >> sys.stderr, "Generation Failed"
-            print >> sys.stderr, sys.exc_info()
+            traceback.print_exc(file=sys.stderr)
             self.notify(self.siteinfo.name, "Generation Failed")
             return
         self.notify(self.siteinfo.name, "Generation Complete")
@@ -458,7 +459,7 @@ class Generator(object):
                     self.regenerate_request.clear()
             except:
                 print >> sys.stderr, "Error during regeneration"
-                print >> sys.stderr, sys.exc_info()
+                traceback.print_exc(file=sys.stderr)
                 self.notify(self.siteinfo.name, "Error during regeneration")
                 self.regeneration_complete.set()
                 self.regenerate_request.clear()
@@ -507,7 +508,7 @@ class Generator(object):
                     self.notify(self.siteinfo.name, "Completed processing " + resource.name)
             except:
                 print >> sys.stderr, "Error during regeneration"
-                print >> sys.stderr, sys.exc_info()
+                traceback.print_exc(file=sys.stderr)
                 self.notify(self.siteinfo.name, "Error during regeneration")
                 self.regeneration_complete.set()
                 self.regenerate_request.clear()

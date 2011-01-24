@@ -135,7 +135,9 @@ class CategoriesManager:
                     archive_resource = "%s.html" % cat_url
                     category["archive_url"] = "/%s/%s" % (relative_folder,
                                                             archive_resource)
+                category["archive_resource"] = archive_resource
 
+            for category in categories:
                 #: stubbing page object for use in template
                 page = {
                     'module': node.module,
@@ -148,7 +150,7 @@ class CategoriesManager:
                                 'page': page})
                 output = render_to_string(template, context)
                 with codecs.open(os.path.join(output_folder, \
-                                     archive_resource), \
+                                     category['archive_resource']), \
                                      "w", "utf-8") as file:
                     file.write(output)
 
