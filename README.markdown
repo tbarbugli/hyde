@@ -1,6 +1,6 @@
 **Note:**
 While this remains the most complete and functional version of hyde, the new
-version (potentially 1.0) is [under heavy development](https://github.com/hydepy/hyde).
+version (potentially 1.0) is [under heavy development](https://github.com/hyde/hyde).
 
 # HYDE
 
