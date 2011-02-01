@@ -369,3 +369,25 @@ class ImageMetadataPyExiv2(object):
                 for key, attr in mapping.items():
                     if key in keys:
                         setattr(resource.meta, attr, getattr(resource.meta, key))
+                        
+class InclusionManager:
+    """Inclusion Manager
+
+    Include listing page properties into corresponding node
+    """
+    @staticmethod
+    def process(folder, params):
+        context = settings.CONTEXT
+        site = context['site']
+        node = params['node']
+
+        inclusions = params['include']
+
+        for inc_key, info in inclusions.iteritems():
+            for p in node.walk_pages():
+                if p.listing:
+                    value = getattr(p, info['field'])
+                    if value is None:
+                        value = getattr(p.node, info['fallback'])
+                    setattr(p.node,inc_key, value)
+
