@@ -115,7 +115,8 @@ Runs through the all the files defined in the configuration associated with ``'h
 [closure]: http://closure-compiler.googlecode.com/
 
 In the settings file, set ``CLOSURE_COMPILER`` to
-the path of [Closure Compiler][closure] jar on your computer.
+the path of [Closure Compiler][closure] jar on your computer
+if you don't want to use the hosted Google Closure Compiler service.
 
 #### UglifyJS
 

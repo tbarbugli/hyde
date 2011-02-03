@@ -188,26 +188,41 @@ class YUICompressor:
 class ClosureCompiler:
     @staticmethod
     def process(resource):
-        compress = settings.CLOSURE_COMPILER
-        if not os.path.exists(compress):
-            compress = os.path.join(
-                    os.path.dirname(
-                    os.path.abspath(__file__)), "..", compress)
-
-        if not compress or not os.path.exists(compress):
-            raise ValueError(
-            "Closure Compiler cannot be found at [%s]" % compress)
-
         tmp_file = File(resource.source_file.path + ".z-tmp")
-        try:
-            check_call(["java", "-jar", compress, "--js",
-                resource.source_file.path, "--js_output_file",
-                tmp_file.path])
-        except CalledProcessError, e:
-            print 'Syntax Error when calling Closure Compiler:', e
+        if hasattr(settings, "CLOSURE_COMPILER"):
+            compress = settings.CLOSURE_COMPILER
+            if not os.path.exists(compress):
+                compress = os.path.join(
+                        os.path.dirname(
+                        os.path.abspath(__file__)), "..", compress)
+            if not compress or not os.path.exists(compress):
+                raise ValueError(
+                "Closure Compiler cannot be found at [%s]" % compress)
+
+            try:
+                check_call(["java", "-jar", compress, "--js",
+                    resource.source_file.path, "--js_output_file",
+                    tmp_file.path])
+            except CalledProcessError, e:
+                print 'Syntax Error when calling Closure Compiler:', e
+                return False
         else:
-            resource.source_file.delete()
-            tmp_file.move_to(resource.source_file.path)
+            try:
+                data = urllib.urlencode({
+                    "js_code": resource.source_file.read_all(),
+                    "output_info": "compiled_code"
+                })
+                req = urllib2.Request("http://closure-compiler.appspot.com/compile", data)
+                res = urllib2.urlopen(req).read()
+                tmp_file.write(res)
+            except urllib2.HTTPError, e:
+                print 'HTTP Error %s when calling remote Closure Compiler' % e.code
+                return False
+            except urllib2.URLError, e:
+                print 'Error when calling remote Closure Compiler:', e.reason
+                return False
+        resource.source_file.delete()
+        tmp_file.move_to(resource.source_file.path)
 
 class Thumbnail:
     @staticmethod
