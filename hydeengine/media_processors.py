@@ -93,9 +93,21 @@ class LessCSS:
 class CSSPrefixer:
     @staticmethod
     def process(resource):
-        import cssprefixer
         data = resource.source_file.read_all()
-        out = cssprefixer.process(data, debug=False, minify=False)
+        try:
+            import cssprefixer
+            out = cssprefixer.process(data, debug=False, minify=False)
+        except ImportError:
+            try:
+                data = urllib.urlencode({"css": resource.source_file.read_all()})
+                req = urllib2.Request("http://cssprefixer.appspot.com/process/", data)
+                out = urllib2.urlopen(req).read()
+            except urllib2.HTTPError, e:
+                print 'HTTP Error %s when calling remote CSSPrefixer' % e.code
+                return False
+            except urllib2.URLError, e:
+                print 'Error when calling remote CSSPrefixer:', e.reason
+                return False
         resource.source_file.write(out)
 
 class CSSmin:

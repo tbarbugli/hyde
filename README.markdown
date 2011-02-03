@@ -164,7 +164,8 @@ You need to install Less (see [the project website][lesscss]) and set the ``LESS
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSPrefixer'`` and adds vendor prefixed versions of CSS3 rules.
 
-You need to install CSSPrefixer using ``sudo easy_install cssprefixer`` command for this processor to work.
+You need to install [CSSPrefixer][cssprefixer] using ``sudo easy_install cssprefixer`` command
+if you don't want to use the hosted CSSPrefixer service.
 
 [cssprefixer]: http://cssprefixer.appspot.com
 
@@ -172,7 +173,7 @@ You need to install CSSPrefixer using ``sudo easy_install cssprefixer`` command 
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSmin'`` and minifies them.
 
-You need to install jsmin using ``sudo easy_install cssmin`` command for this processor to work.
+You need to install [cssmin][cssmin] using ``sudo easy_install cssmin`` command for this processor to work.
 
 [cssmin]: http://github.com/zacharyvoase/cssmin
 
@@ -188,7 +189,7 @@ You need to install CoffeeScript (see [the project website][coffeescript]) and s
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.JSmin'`` and minifies them.
 
-You need to install jsmin using ``sudo easy_install jsmin`` command for this processor to work.
+You need to install [jsmin][jsmin] using ``sudo easy_install jsmin`` command for this processor to work.
 
 [jsmin]: http://pypi.python.org/pypi/jsmin
 
