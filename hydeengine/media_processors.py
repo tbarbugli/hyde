@@ -100,7 +100,12 @@ class Stylus:
             check_call([stylus, resource.source_file.path])
         except CalledProcessError, e:
             print 'Syntax Error when calling stylus:', e
-        resource.source_file.delete()
+        out_file = File(resource.source_file.path_without_extension + ".css")
+        if not out_file.exists:
+            print 'Error Occurred when processing with Stylus'
+        else:
+            resource.source_file.delete()
+            resource.source_file = out_file
 
 class CSSPrefixer:
     @staticmethod
@@ -141,7 +146,12 @@ class CoffeeScript:
         except CalledProcessError, e:
             print 'Syntax Error when calling CoffeeScript:', e
             return None
-        resource.source_file.delete()
+        out_file = File(resource.source_file.path_without_extension + ".css")
+        if not out_file.exists:
+            print 'Error Occurred when processing with Stylus'
+        else:
+            resource.source_file.delete()
+            resource.source_file = out_file
 
 class JSmin:
     @staticmethod
