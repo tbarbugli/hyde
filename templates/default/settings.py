@@ -63,6 +63,9 @@ MEDIA_PROCESSORS = {
         '.less':('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.LessCSS',
                 'hydeengine.media_processors.CSSmin',),
+        '.styl':('hydeengine.media_processors.TemplateProcessor',
+                'hydeengine.media_processors.Stylus',
+                'hydeengine.media_processors.CSSmin',),
         '.hss':(
                 'hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.HSS',

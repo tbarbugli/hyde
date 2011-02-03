@@ -90,6 +90,18 @@ class LessCSS:
         if not out_file.exists:
             print 'Error Occurred when processing with Less'
 
+class Stylus:
+    @staticmethod
+    def process(resource):
+        stylus = settings.STYLUS_PATH
+        if not stylus or not os.path.exists(stylus):
+            raise ValueError("Stylus Processor cannot be found at [%s]" % stylus)
+        try:
+            check_call([stylus, resource.source_file.path])
+        except CalledProcessError, e:
+            print 'Syntax Error when calling stylus:', e
+        resource.source_file.delete()
+
 class CSSPrefixer:
     @staticmethod
     def process(resource):

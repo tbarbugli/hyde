@@ -65,6 +65,9 @@ MEDIA_PROCESSORS = {
         '.less': ('hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.LessCSS',
                 'hydeengine.media_processors.YUICompressor',),
+        '.styl':('hydeengine.media_processors.TemplateProcessor',
+                'hydeengine.media_processors.Stylus',
+                'hydeengine.media_processors.CSSmin',),
         '.hss': (
                 'hydeengine.media_processors.TemplateProcessor',
                 'hydeengine.media_processors.HSS',
@@ -103,7 +106,7 @@ FILTER = {
 
 
 # Processor Configuration
-# 
+#
 #  Set this to the output of `which growlnotify`. If `which` returns
 #  emtpy, install growlnotify from the Extras package that comes with
 #  the Growl disk image.

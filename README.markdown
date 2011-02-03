@@ -160,6 +160,14 @@ You need to install Less (see [the project website][lesscss]) and set the ``LESS
 
 [lesscss]: http://lesscss.org/
 
+#### Stylus Processor
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.Stylus'`` and converts them to css.
+
+You need to install Stylus (see [the project website][stylus]) and set the ``STYLUS_PATH`` variable to the path to the ``stylus`` script.
+
+[stylus]: http://learnboost.github.com/stylus/
+
 #### CSSPrefixer Processor
 
 Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.CSSPrefixer'`` and adds vendor prefixed versions of CSS3 rules.
