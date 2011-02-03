@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import urllib
+import urllib2
 from django.template.loader import render_to_string
 from django.conf import settings
 from file_system import File
@@ -124,6 +126,38 @@ class JSmin:
         data = resource.source_file.read_all()
         out = jsmin.jsmin(data)
         resource.source_file.write(out)
+
+class UglifyJS:
+    @staticmethod
+    def process(resource):
+        tmp_file = File(resource.source_file.path + ".z-tmp")
+        if hasattr(settings, "UGLIFYJS"):
+            compress = settings.UGLIFYJS
+            if not os.path.exists(compress):
+                compress = os.path.join(
+                        os.path.dirname(
+                        os.path.abspath(__file__)), "..", compress)
+
+            try:
+                check_call([compress, resource.source_file.path,
+                            "--output", tmp_file.path])
+            except CalledProcessError, e:
+                print 'Syntax Error when calling UglifyJS:', e
+                return False
+        else:
+            try:
+                data = urllib.urlencode({"js_code": resource.source_file.read_all()})
+                req = urllib2.Request("http://marijnhaverbeke.nl/uglifyjs", data)
+                res = urllib2.urlopen(req).read()
+                tmp_file.write(res)
+            except urllib2.HTTPError, e:
+                print 'HTTP Error %s when calling remote UglifyJS' % e.code
+                return False
+            except urllib2.URLError, e:
+                print 'Error when calling remote UglifyJS:', e.reason
+                return False
+        resource.source_file.delete()
+        tmp_file.move_to(resource.source_file.path)
 
 class YUICompressor:
     @staticmethod

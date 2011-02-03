@@ -106,7 +106,7 @@ Runs through the all the files defined in the configuration associated with ``'h
 [yuic]: http://developer.yahoo.com/yui/compressor/
 
 In the settings file, set ``YUI_COMPRESSOR`` to
-be a path to a [YUI Compressor][yuic] jar on your computer.
+the path of a [YUI Compressor][yuic] jar on your computer.
 
 #### Closure Compiler
 
@@ -115,7 +115,17 @@ Runs through the all the files defined in the configuration associated with ``'h
 [closure]: http://closure-compiler.googlecode.com/
 
 In the settings file, set ``CLOSURE_COMPILER`` to
-be a path to a [Closure Compiler][closure] jar on your computer.
+the path of [Closure Compiler][closure] jar on your computer.
+
+#### UglifyJS
+
+Runs through the all the files defined in the configuration associated with ``'hydeengine.media_processors.UglifyJS'`` and compresses them.
+
+[uglifyjs]: http://marijn.haverbeke.nl/uglifyjs/
+
+In the settings file, set ``UGLIFYJS`` to
+the path of [UglifyJS][uglifyjs] script on your computer
+if you don't want to use the hosted UglifyJS service.
 
 #### Clever CSS Processor
 
