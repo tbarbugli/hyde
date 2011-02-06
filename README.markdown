@@ -432,3 +432,4 @@ The following websites are built using hyde and are open sourced.
 - [Paul Bonser](https://github.com/pib)
 - [Yoann Pigné](https://github.com/pigne)
 - [Hubert HANGHOFER](https://github.com/brewbert)
+- [sirex](https://github.com/sirex)
