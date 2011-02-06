@@ -458,3 +458,5 @@ The following websites are built using hyde and are open sourced.
 - [Yoann Pigné](https://github.com/pigne)
 - [Hubert HANGHOFER](https://github.com/brewbert)
 - [sirex](https://github.com/sirex)
+- [Alexander Vershilov](https://github.com/qnikst)
+
