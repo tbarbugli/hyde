@@ -79,6 +79,7 @@ These conventions will make it easier to configure hyde plugins.
 
 Most of the boilerplate configuration comes as a part of the initialized website. The only setting you _have to_ override is the SITE_NAME setting.
 
+
 ### Media Processors
 
 Media processors are defined in the following format:
@@ -398,6 +399,30 @@ To enable Typogrify, use ``{% filter typogrify %}`` in your code. Typogrify is "
 [typogrify_site]:http://code.google.com/p/typogrify/
 [smartypants]:http://web.chad.org/projects/smartypants.py/
 
+
+## Preprocessors
+
+Main information about preprocessors can be found in 
+[hyde wiki]:https://github.com/lakshmivyas/hyde/wiki/Site-Preprocessors
+
+### Properties inclusion
+
+Is preprocessor that includes new properties into nodes. 
+Simple configuration:
+  SITE_PRE_PROCESSORS = {
+      '/': {
+        'hydeengine.site_pre_processors.TranslationManager': {
+          'include' : {
+             'node_field': {'field':'page_field','fallback':'node_field2'}
+          }
+        }
+    }
+  }
+
+Processors find listing page for node and then include page.field into node.node_field, and if there is no title it falls back to node.node_field2 field.
+One can use it for translation, for example use field: page_field on native language and the use node field in template (to overcome node.name) or even add additiona menu_title to give title name to module. 
+N.B. you should explisitly create listing page otherwise preprocessor will not add any attribute to node.
+
 ## Base Templates
 
 There are two layouts currently available: default and simple.
@@ -452,3 +477,6 @@ The following websites are built using hyde and are open sourced.
 - [Paul Bonser](https://github.com/pib)
 - [Yoann Pigné](https://github.com/pigne)
 - [Hubert HANGHOFER](https://github.com/brewbert)
+- [sirex](https://github.com/sirex)
+- [Alexander Vershilov](https://github.com/qnikst)
+

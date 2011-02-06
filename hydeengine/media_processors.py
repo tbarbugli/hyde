@@ -28,7 +28,9 @@ class CleverCSS:
         import clevercss
         data = resource.source_file.read_all()
         out = clevercss.convert(data)
-        resource.source_file.write(out)
+        out_file = File(resource.source_file.path_without_extension + ".css")
+        out_file.write(out)
+        resource.source_file.delete()
 
 class HSS:
     @staticmethod
