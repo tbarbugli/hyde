@@ -58,7 +58,7 @@ class SASS:
             raise ValueError("SASS Processor cannot be found at [%s]" % sass)
         try:
             check_call([sass, "-I", load_path, resource.source_file.path,
-              `out_file`])
+              out_file.path])
         except CalledProcessError, e:
             print 'Syntax Error when calling SASS Processor:', e
             return None
