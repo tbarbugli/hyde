@@ -3,6 +3,8 @@ import logging
 import fnmatch
 from media_processors import TemplateProcessor
 
+EXCLUDED_EXTENSIONS = ['jpg', 'png', 'jpeg']
+
 def load_processor(name):
     (module_name, _ , processor) = name.rpartition(".")
     __import__(module_name)
@@ -109,11 +111,12 @@ class Processor(object):
             processor = load_processor(processor_name)
             self.logger.debug("       Executing %s" % processor_name)
             processor.process(resource)
-        
+
         if resource.node.type == "content" and not resource.prerendered:
             self.settings.CONTEXT['page'] = resource
             self.logger.debug("       Rendering Page")
-            TemplateProcessor.process(resource)
+            if str(resource.file).split(".")[-1] not in EXCLUDED_EXTENSIONS:
+                TemplateProcessor.process(resource)
             self.settings.CONTEXT['page'] = None
             
         resource.source_file = original_source

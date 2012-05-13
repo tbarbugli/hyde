@@ -78,7 +78,6 @@ def main():
             server.quit()
         if generator:
             generator.quit()
-
     if options.generate:
         generator = hydeengine.Generator(options.site_path)
         generator.generate(options.deploy_to, options.keep_watching, quit, options.settings)
